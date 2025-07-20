@@ -63,8 +63,8 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     onClose()
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const handleInputChange = (field: string, value: string | undefined) => {
+    setFormData(prev => ({ ...prev, [field]: value || '' }))
   }
 
   const handleGptDecompose = async () => {
@@ -111,7 +111,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
 
   const handleSubtaskChange = (index: number, field: keyof SubTask, value: any) => {
     const newSubtasks = [...subtasks]
-    newSubtasks[index] = { ...newSubtasks[index], [field]: value }
+    newSubtasks[index] = { ...newSubtasks[index], [field]: value || '' }
     setSubtasks(newSubtasks)
   }
 
