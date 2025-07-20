@@ -296,7 +296,17 @@ export default function TaskListView() {
                     {task.category}
                   </div>
                 </div>
-                <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
+                <div className="flex flex-col">
+                  <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
+                  {task.estimatedTime && (
+                    <span className="text-xs text-gray-500 flex items-center mt-1">
+                      <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {task.estimatedTime}
+                    </span>
+                  )}
+                </div>
               </div>
               
               <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">

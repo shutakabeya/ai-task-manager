@@ -11,5 +11,6 @@ export type Task = {
   id: string;
   title: string;
   category: string;
+  estimatedTime?: string;   // メインタスクの予想時間
   subtasks: SubTask[];
 }; 

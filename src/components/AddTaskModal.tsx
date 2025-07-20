@@ -17,6 +17,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     title: '',
     category: '',
     naturalText: '',
+    estimatedTime: '',
   })
   const [subtasks, setSubtasks] = useState<SubTask[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -47,13 +48,14 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       id: `task-${Date.now()}`,
       title: formData.title,
       category: formData.category,
+      estimatedTime: formData.estimatedTime || undefined,
       subtasks: subtasksWithIds
     }
 
     addTask(newTask)
     
     // フォームをリセット
-    setFormData({ title: '', category: '', naturalText: '' })
+    setFormData({ title: '', category: '', naturalText: '', estimatedTime: '' })
     setSubtasks([])
     setError('')
     onClose()
@@ -195,6 +197,50 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                             />
                           </div>
 
+                          {/* 予想時間 */}
+                          <div>
+                            <label htmlFor="estimatedTime" className="block text-sm font-medium text-gray-700 mb-1">
+                              予想時間
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={formData.estimatedTime || ''}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                  if (value === 'custom') {
+                                    // カスタムが選択された場合、入力フィールドを表示
+                                    handleInputChange('estimatedTime', '')
+                                  } else {
+                                    handleInputChange('estimatedTime', value)
+                                  }
+                                }}
+                                className="input-base w-full px-2 py-1 text-sm appearance-none"
+                              >
+                                <option value="">予想時間（任意）</option>
+                                <option value="15分">15分</option>
+                                <option value="30分">30分</option>
+                                <option value="1時間">1時間</option>
+                                <option value="2時間">2時間</option>
+                                <option value="custom">カスタム</option>
+                              </select>
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
+                            {/* カスタム時間入力フィールド */}
+                            {(formData.estimatedTime === '' || formData.estimatedTime === 'custom') && (
+                              <input
+                                type="text"
+                                value={formData.estimatedTime === 'custom' ? '' : formData.estimatedTime}
+                                onChange={(e) => handleInputChange('estimatedTime', e.target.value)}
+                                className="input-base w-full px-2 py-1 text-sm"
+                                placeholder="カスタム時間を入力（例：45分、1.5時間、90分）"
+                              />
+                            )}
+                          </div>
+
                           {/* 日時 */}
                           <div>
                             <label htmlFor="datetime" className="block text-sm font-medium text-gray-700 mb-1">
@@ -272,14 +318,45 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                   className="input-base w-full px-2 py-1 text-sm"
                                   placeholder="カテゴリ（空欄でメインタスクのカテゴリを継承）"
                                 />
+                                <div className="relative">
+                                  <select
+                                    value={subtask.estimatedTime || ''}
+                                    onChange={(e) => {
+                                      const value = e.target.value
+                                      if (value === 'custom') {
+                                        // カスタムが選択された場合、入力フィールドを表示
+                                        handleSubtaskChange(index, 'estimatedTime', '')
+                                      } else {
+                                        handleSubtaskChange(index, 'estimatedTime', value)
+                                      }
+                                    }}
+                                    className="input-base w-full px-2 py-1 text-sm appearance-none"
+                                  >
+                                    <option value="">予想時間（任意）</option>
+                                    <option value="15分">15分</option>
+                                    <option value="30分">30分</option>
+                                    <option value="1時間">1時間</option>
+                                    <option value="2時間">2時間</option>
+                                    <option value="custom">カスタム</option>
+                                  </select>
+                                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* カスタム時間入力フィールド */}
+                              {(subtask.estimatedTime === '' || subtask.estimatedTime === 'custom') && (
                                 <input
                                   type="text"
-                                  value={subtask.estimatedTime || ''}
+                                  value={subtask.estimatedTime === 'custom' ? '' : subtask.estimatedTime}
                                   onChange={(e) => handleSubtaskChange(index, 'estimatedTime', e.target.value)}
                                   className="input-base w-full px-2 py-1 text-sm"
-                                  placeholder="予想時間（例：30分、2時間）"
+                                  placeholder="カスタム時間を入力（例：45分、1.5時間、90分）"
                                 />
-                              </div>
+                              )}
                               
                               <DatePicker
                                 selected={subtask.datetime ? new Date(subtask.datetime) : null}

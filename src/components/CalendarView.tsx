@@ -114,7 +114,7 @@ export default function CalendarView() {
   }
 
   const getEstimatedTimeDisplay = (estimatedTime?: string) => {
-    if (!estimatedTime) return '1h'
+    if (!estimatedTime) return ''
     return estimatedTime
   }
 
@@ -187,7 +187,7 @@ export default function CalendarView() {
                     </div>
                     <div className="text-sm opacity-90 mt-1">
                       {formatTime(subtask.datetime!)}
-                      {` (${getEstimatedTimeDisplay(subtask.estimatedTime)})`}
+                      {subtask.estimatedTime && ` (${subtask.estimatedTime})`}
                     </div>
                     <div className="text-xs opacity-75 mt-1">
                       {task.title} - {subtask.category || task.category}
@@ -297,7 +297,7 @@ export default function CalendarView() {
                         </div>
                         <div className="text-xs opacity-90">
                           {formatTime(subtask.datetime!)}
-                          {` (${getEstimatedTimeDisplay(subtask.estimatedTime)})`}
+                          {subtask.estimatedTime && ` (${subtask.estimatedTime})`}
                         </div>
                         {subtask.category && (
                           <div className="text-xs opacity-75 mt-1">
