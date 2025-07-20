@@ -27,28 +27,36 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.title.trim() || !formData.category.trim()) {
-      setError('タイトルとカテゴリは必須です')
+    if (!formData.title.trim()) {
+      setError('タイトルは必須です')
       return
     }
 
+    // サブタスクが空の場合は、メインタスクと同じタイトルのサブタスクを追加
+    let finalSubtasks = subtasks
     if (subtasks.length === 0) {
-      setError('サブタスクを1つ以上追加してください')
-      return
+      finalSubtasks = [{
+        id: '',
+        title: formData.title,
+        datetime: formData.datetime || undefined,
+        estimatedTime: formData.estimatedTime || '',
+        category: formData.category || '未分類',
+        completed: false
+      }]
     }
 
     // サブタスクにIDを付与し、カテゴリが空の場合はメインタスクのカテゴリを適用
-    const subtasksWithIds = subtasks.map((subtask, index) => ({
+    const subtasksWithIds = finalSubtasks.map((subtask, index) => ({
       ...subtask,
       id: `subtask-${Date.now()}-${index}`,
       completed: false,
-      category: subtask.category || formData.category // カテゴリが空の場合はメインタスクのカテゴリを適用
+      category: subtask.category || formData.category || '未分類' // カテゴリが空の場合はメインタスクのカテゴリまたはデフォルト値を適用
     }))
 
     const newTask: Task = {
       id: `task-${Date.now()}`,
       title: formData.title,
-      category: formData.category,
+      category: formData.category || '未分類',
       datetime: formData.datetime || undefined,
       estimatedTime: formData.estimatedTime || undefined,
       subtasks: subtasksWithIds
@@ -187,7 +195,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                           {/* カテゴリ */}
                           <div>
                             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                              カテゴリ
+                              カテゴリ（任意）
                             </label>
                             <input
                               type="text"
