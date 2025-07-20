@@ -5,6 +5,8 @@ export const exampleTasks: Task[] = [
     id: "task-1",
     title: "プレゼン準備",
     category: "仕事",
+    date: "2025-01-20",
+    originalText: "プレゼン準備",
     subtasks: [
       {
         id: "sub-1",
@@ -33,6 +35,8 @@ export const exampleTasks: Task[] = [
     id: "task-2",
     title: "学習計画",
     category: "学習",
+    date: "2025-01-20",
+    originalText: "学習計画",
     subtasks: [
       {
         id: "sub-4",
@@ -54,6 +58,8 @@ export const exampleTasks: Task[] = [
     id: "task-3",
     title: "プライベート用事",
     category: "プライベート",
+    date: "2025-01-20",
+    originalText: "プライベート用事",
     subtasks: [
       {
         id: "sub-6",
@@ -75,6 +81,8 @@ export const exampleTasks: Task[] = [
     id: "task-4",
     title: "リマインドテスト",
     category: "テスト",
+    date: new Date().toISOString().split('T')[0],
+    originalText: "リマインドテスト",
     subtasks: [
       {
         id: "sub-8",
