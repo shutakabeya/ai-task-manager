@@ -20,7 +20,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     datetime: '',
     estimatedTime: '',
   })
-  const [subtasks, setSubtasks] = useState<SubTask[]>([])
+  const [subtasks, setSubtasks] = useState<Subtask[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -117,7 +117,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     }
   }
 
-  const handleSubtaskChange = (index: number, field: keyof SubTask, value: any) => {
+  const handleSubtaskChange = (index: number, field: keyof Subtask, value: any) => {
     const newSubtasks = [...subtasks]
     newSubtasks[index] = { ...newSubtasks[index], [field]: value || '' }
     setSubtasks(newSubtasks)
