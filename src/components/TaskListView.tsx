@@ -3,21 +3,23 @@
 import { useState } from 'react'
 
 import { useTaskStore } from '../types/taskStore'
-import { Task } from '../types/task'
-
+import { Task, SubTask } from '../types/task'
 
 import { DragHandle } from './DragHandle'
 import TaskDetailModal from './TaskDetailModal'
+import TaskEditModal from './TaskEditModal'
 
 type ViewMode = 'date' | 'project'
 
 export default function TaskListView() {
-  const { tasks, toggleSubtask } = useTaskStore()
+  const { tasks, toggleSubtask, deleteTask, deleteSubtask } = useTaskStore()
   const [viewMode, setViewMode] = useState<ViewMode>('date')
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
-
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [editingSubtask, setEditingSubtask] = useState<{task: Task, subtask: SubTask} | null>(null)
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks)
@@ -35,8 +37,28 @@ export default function TaskListView() {
   }
 
   const handleEditTask = (task: Task) => {
-    // TODO: 編集機能を実装
-    console.log('Edit task:', task)
+    setEditingTask(task)
+    setEditingSubtask(null)
+    setIsEditModalOpen(true)
+    setIsDetailModalOpen(false)
+  }
+
+  const handleEditSubtask = (task: Task, subtask: SubTask) => {
+    setEditingSubtask({ task, subtask })
+    setEditingTask(null)
+    setIsEditModalOpen(true)
+  }
+
+  const handleDeleteTask = (taskId: string) => {
+    if (window.confirm('このタスクを削除しますか？この操作は元に戻せません。')) {
+      deleteTask(taskId)
+    }
+  }
+
+  const handleDeleteSubtask = (taskId: string, subtaskId: string) => {
+    if (window.confirm('このサブタスクを削除しますか？この操作は元に戻せません。')) {
+      deleteSubtask(taskId, subtaskId)
+    }
   }
 
   const getCategoryColor = (category: string) => {
@@ -114,6 +136,7 @@ export default function TaskListView() {
       completed: boolean
       isSubtask: boolean
       parentTask?: string
+      parentTaskId?: string
     }> = []
 
     tasks.forEach(task => {
@@ -138,7 +161,8 @@ export default function TaskListView() {
             category: subtask.category || task.category,
             completed: subtask.completed,
             isSubtask: true,
-            parentTask: task.title
+            parentTask: task.title,
+            parentTaskId: task.id
           })
         })
       }
@@ -206,221 +230,284 @@ export default function TaskListView() {
     const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
 
     return (
-        <div className="space-y-6 animate-fadeIn">
-          {sectionOrder.map(section => {
-            const items = groups[section]
-            if (items.length === 0) return null
+      <div className="space-y-6 animate-fadeIn">
+        {sectionOrder.map(section => {
+          const items = groups[section]
+          if (items.length === 0) return null
 
-            return (
-              <div key={section} className="space-y-2 animate-slideIn">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                  {section === 'Today' && '今日'}
-                  {section === 'Tomorrow' && '明日'}
-                  {section === 'This Week' && '今週'}
-                  {section === 'Future' && '将来'}
-                  {section === 'No Date' && '日時未設定'}
-                </h3>
-                <div className="space-y-1">
-                  {items.map((item, index) => (
+          return (
+            <div key={section} className="space-y-2 animate-slideIn">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                {section === 'Today' && '今日'}
+                {section === 'Tomorrow' && '明日'}
+                {section === 'This Week' && '今週'}
+                {section === 'Future' && '将来'}
+                {section === 'No Date' && '日時未設定'}
+              </h3>
+              <div className="space-y-1">
+                {items.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="transition-all duration-200"
+                  >
                     <div
-                      key={item.id}
-                      className="transition-all duration-200"
-                    >
-                      <div
-                        className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-soft transition-all duration-150 ${
-                          item.completed ? 'opacity-75' : ''
-                        }`}
-                        style={{ animationDelay: `${index * 50}ms` }}
-                        data-clickable="true"
-                        onMouseDown={(e) => {
-                          // ドラッグハンドル以外のクリックを防ぐ
-                          const target = e.target as HTMLElement
-                          if (!target.closest('[data-drag-handle="true"]')) {
-                            e.stopPropagation()
-                          }
-                        }}
-                        onTouchStart={(e) => {
-                          // タッチデバイスでのドラッグハンドル以外のタッチを防ぐ
-                          const target = e.target as HTMLElement
-                          if (!target.closest('[data-drag-handle="true"]')) {
-                            e.stopPropagation()
-                          }
-                        }}
-                        onClick={(e) => {
-                          e.preventDefault()
+                      className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-soft transition-all duration-150 ${
+                        item.completed ? 'opacity-75' : ''
+                      }`}
+                      style={{ animationDelay: `${index * 50}ms` }}
+                      data-clickable="true"
+                      onMouseDown={(e) => {
+                        // ドラッグハンドル以外のクリックを防ぐ
+                        const target = e.target as HTMLElement
+                        if (!target.closest('[data-drag-handle="true"]')) {
                           e.stopPropagation()
-                          
-                          // ドラッグハンドルがクリックされた場合は何もしない
-                          const target = e.target as HTMLElement
-                          if (target.closest('[data-drag-handle="true"]')) {
-                            return
+                        }
+                      }}
+                      onTouchStart={(e) => {
+                        // タッチデバイスでのドラッグハンドル以外のタッチを防ぐ
+                        const target = e.target as HTMLElement
+                        if (!target.closest('[data-drag-handle="true"]')) {
+                          e.stopPropagation()
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        
+                        // ドラッグハンドルがクリックされた場合は何もしない
+                        const target = e.target as HTMLElement
+                        if (target.closest('[data-drag-handle="true"]')) {
+                          return
+                        }
+                        
+                        if (!item.isSubtask) {
+                          const task = tasks.find(t => t.id === item.id)
+                          if (task) {
+                            handleTaskClick(task)
                           }
-                          
-                          if (!item.isSubtask) {
-                            const task = tasks.find(t => t.id === item.id)
-                            if (task) {
-                              handleTaskClick(task)
+                        }
+                      }}
+                    >
+                      {/* チェックボックス */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (item.isSubtask) {
+                            // サブタスクの場合、親タスクを探してトグル
+                            const parentTask = tasks.find(task => 
+                              task.subtasks.some(sub => sub.id === item.id)
+                            )
+                            if (parentTask) {
+                              toggleSubtask(parentTask.id, item.id)
                             }
                           }
                         }}
+                        className={`checkbox-base flex-shrink-0 w-5 h-5 rounded border-2 ${
+                          item.completed
+                            ? 'bg-success border-success'
+                            : 'border-gray-300 hover:border-primary'
+                        }`}
                       >
-                        {/* チェックボックス */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (item.isSubtask) {
-                              // サブタスクの場合、親タスクを探してトグル
-                              const parentTask = tasks.find(task => 
-                                task.subtasks.some(sub => sub.id === item.id)
-                              )
-                              if (parentTask) {
-                                toggleSubtask(parentTask.id, item.id)
-                              }
-                            }
-                          }}
-                          className={`checkbox-base flex-shrink-0 w-5 h-5 rounded border-2 ${
-                            item.completed
-                              ? 'bg-success border-success'
-                              : 'border-gray-300 hover:border-primary'
-                          }`}
-                        >
-                          {item.completed && (
-                            <svg className="w-3 h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </button>
-
-                        {/* タスク情報 */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2">
-                            <p className={`text-sm font-medium ${
-                              item.completed ? 'text-gray-500 line-through' : 'text-text'
-                            }`}>
-                              {item.title}
-                            </p>
-                            {item.isSubtask && item.parentTask && (
-                              <span className="text-xs text-gray-400">
-                                ({item.parentTask})
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center space-x-3 mt-1">
-                            {item.datetime && (
-                              <span className="text-xs text-gray-500 flex items-center">
-                                <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                {formatDateTime(item.datetime)}
-                              </span>
-                            )}
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
-                              {item.category}
-                            </span>
-                          </div>
-                        </div>
-
-
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-    )
-  }
-
-  // プロジェクト別ビュー（既存のビュー）
-  const ProjectView = () => (
-      <div className="space-y-3 sm:space-y-4 animate-fadeIn">
-        {tasks.map((task, taskIndex) => (
-          <div
-            key={task.id}
-            className="transition-all duration-200"
-          >
-            <div
-              className="card-white overflow-hidden cursor-grab active:cursor-grabbing"
-              style={{ animationDelay: `${taskIndex * 100}ms` }}
-            >
-              {/* タスクヘッダー */}
-              <div
-                className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
-                data-clickable="true"
-                onMouseDown={(e) => {
-                  // ドラッグハンドル以外のクリックを防ぐ
-                  const target = e.target as HTMLElement
-                  if (!target.closest('[data-drag-handle="true"]')) {
-                    e.stopPropagation()
-                  }
-                }}
-                onTouchStart={(e) => {
-                  // タッチデバイスでのドラッグハンドル以外のタッチを防ぐ
-                  const target = e.target as HTMLElement
-                  if (!target.closest('[data-drag-handle="true"]')) {
-                    e.stopPropagation()
-                  }
-                }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  
-                  // ドラッグハンドルがクリックされた場合は何もしない
-                  const target = e.target as HTMLElement
-                  if (target.closest('[data-drag-handle="true"]')) {
-                    return
-                  }
-                  
-                  handleTaskClick(task)
-                }}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    <div className="flex-shrink-0">
-                      <div className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${getCategoryColor(task.category)}`}>
-                        {task.category}
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
-                      <div className="flex items-center space-x-3 mt-1">
-                        {task.datetime && (
-                          <span className="text-xs text-gray-500 flex items-center">
-                            <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {formatDateTime(task.datetime)}
-                          </span>
+                        {item.completed && (
+                          <svg className="w-3 h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
                         )}
-                        {task.estimatedTime && (
-                          <span className="text-xs text-gray-500 flex items-center">
-                            <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {task.estimatedTime}
+                      </button>
+
+                      {/* タスク情報 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <p className={`text-sm font-medium ${
+                            item.completed ? 'text-gray-500 line-through' : 'text-text'
+                          }`}>
+                            {item.title}
+                          </p>
+                          {item.isSubtask && item.parentTask && (
+                            <span className="text-xs text-gray-400">
+                              ({item.parentTask})
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center space-x-3 mt-1">
+                          {item.datetime && (
+                            <span className="text-xs text-gray-500 flex items-center">
+                              <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              {formatDateTime(item.datetime)}
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                            {item.category}
                           </span>
+                        </div>
+                      </div>
+
+                      {/* アクションボタン */}
+                      <div className="flex items-center space-x-1">
+                        {item.isSubtask && item.parentTaskId && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const parentTask = tasks.find(t => t.id === item.parentTaskId)
+                                const subtask = parentTask?.subtasks.find(s => s.id === item.id)
+                                if (parentTask && subtask) {
+                                  handleEditSubtask(parentTask, subtask)
+                                }
+                              }}
+                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                              title="編集"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (item.parentTaskId) {
+                                  handleDeleteSubtask(item.parentTaskId, item.id)
+                                }
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                              title="削除"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">
-                    {/* 進捗バー */}
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 sm:w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-success h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${getCompletionRate(task)}%` }}
-                        />
-                      </div>
-                      <span className="text-xs sm:text-sm text-gray-500">
-                        {Math.round(getCompletionRate(task))}%
-                      </span>
-                    </div>
-                    
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
 
+  // プロジェクト別ビュー
+  const ProjectView = () => (
+    <div className="space-y-3 sm:space-y-4 animate-fadeIn">
+      {tasks.map((task, taskIndex) => (
+        <div
+          key={task.id}
+          className="transition-all duration-200"
+        >
+          <div
+            className="card-white overflow-hidden cursor-grab active:cursor-grabbing"
+            style={{ animationDelay: `${taskIndex * 100}ms` }}
+          >
+            {/* タスクヘッダー */}
+            <div
+              className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
+              data-clickable="true"
+              onMouseDown={(e) => {
+                // ドラッグハンドル以外のクリックを防ぐ
+                const target = e.target as HTMLElement
+                if (!target.closest('[data-drag-handle="true"]')) {
+                  e.stopPropagation()
+                }
+              }}
+              onTouchStart={(e) => {
+                // タッチデバイスでのドラッグハンドル以外のタッチを防ぐ
+                const target = e.target as HTMLElement
+                if (!target.closest('[data-drag-handle="true"]')) {
+                  e.stopPropagation()
+                }
+              }}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                
+                // ドラッグハンドルがクリックされた場合は何もしない
+                const target = e.target as HTMLElement
+                if (target.closest('[data-drag-handle="true"]')) {
+                  return
+                }
+                
+                handleTaskClick(task)
+              }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${getCategoryColor(task.category)}`}>
+                      {task.category}
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
+                    <div className="flex items-center space-x-3 mt-1">
+                      {task.datetime && (
+                        <span className="text-xs text-gray-500 flex items-center">
+                          <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {formatDateTime(task.datetime)}
+                        </span>
+                      )}
+                      {task.estimatedTime && (
+                        <span className="text-xs text-gray-500 flex items-center">
+                          <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {task.estimatedTime}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">
+                  {/* 進捗バー */}
+                  <div className="flex items-center space-x-2">
+                    <div className="w-16 sm:w-20 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-success h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${getCompletionRate(task)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs sm:text-sm text-gray-500">
+                      {Math.round(getCompletionRate(task))}%
+                    </span>
+                  </div>
+                  
+                  {/* アクションボタン */}
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleEditTask(task)
+                      }}
+                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="編集"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleDeleteTask(task.id)
+                      }}
+                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      title="削除"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                     
                     {/* 展開アイコン */}
                     <button
@@ -450,89 +537,116 @@ export default function TaskListView() {
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* サブタスク一覧 */}
-              {expandedTasks.has(task.id) && (
-                <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
-                  <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-                    {getSortedSubtasks(task).map((subtask, subtaskIndex) => (
+            {/* サブタスク一覧 */}
+            {expandedTasks.has(task.id) && (
+              <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
+                <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                  {getSortedSubtasks(task).map((subtask, subtaskIndex) => (
+                    <div
+                      key={subtask.id}
+                      className="transition-all duration-200"
+                    >
                       <div
-                        key={subtask.id}
-                        className="transition-all duration-200"
+                        className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 ${
+                          subtask.completed ? 'opacity-75' : ''
+                        }`}
+                        style={{ animationDelay: `${subtaskIndex * 50}ms` }}
                       >
-                        <div
-                          className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 ${
-                            subtask.completed ? 'opacity-75' : ''
+                        {/* チェックボックス */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleSubtask(task.id, subtask.id)
+                          }}
+                          className={`checkbox-base flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mt-0.5 ${
+                            subtask.completed
+                              ? 'bg-success border-success'
+                              : 'border-gray-300 hover:border-primary'
                           }`}
-                          style={{ animationDelay: `${subtaskIndex * 50}ms` }}
                         >
-                          {/* チェックボックス */}
+                          {subtask.completed && (
+                            <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+
+                        {/* サブタスク情報 */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${
+                            subtask.completed ? 'text-gray-500 line-through' : 'text-text'
+                          }`}>
+                            {subtask.title}
+                          </p>
+                          
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1">
+                            {subtask.datetime && (
+                              <span className="text-xs text-gray-500 flex items-center">
+                                <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {formatDateTime(subtask.datetime)}
+                              </span>
+                            )}
+                            {subtask.estimatedTime && (
+                              <span className="text-xs text-gray-500 flex items-center">
+                                <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {subtask.estimatedTime}
+                              </span>
+                            )}
+                            {subtask.category && (
+                              <span className="text-xs text-gray-500 flex items-center">
+                                <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                {subtask.category}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* サブタスクアクションボタン */}
+                        <div className="flex items-center space-x-1">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              toggleSubtask(task.id, subtask.id)
+                              handleEditSubtask(task, subtask)
                             }}
-                            className={`checkbox-base flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mt-0.5 ${
-                              subtask.completed
-                                ? 'bg-success border-success'
-                                : 'border-gray-300 hover:border-primary'
-                            }`}
+                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            title="編集"
                           >
-                            {subtask.completed && (
-                              <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                           </button>
-
-                          {/* サブタスク情報 */}
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium ${
-                              subtask.completed ? 'text-gray-500 line-through' : 'text-text'
-                            }`}>
-                              {subtask.title}
-                            </p>
-                            
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1">
-                              {subtask.datetime && (
-                                <span className="text-xs text-gray-500 flex items-center">
-                                  <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
-                                  {formatDateTime(subtask.datetime)}
-                                </span>
-                              )}
-                              {subtask.estimatedTime && (
-                                <span className="text-xs text-gray-500 flex items-center">
-                                  <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  {subtask.estimatedTime}
-                                </span>
-                              )}
-                              {subtask.category && (
-                                <span className="text-xs text-gray-500 flex items-center">
-                                  <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                  </svg>
-                                  {subtask.category}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteSubtask(task.id, subtask.id)
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            title="削除"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
               </div>
-    )
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 
   return (
     <div className="space-y-4 animate-fadeIn">
@@ -576,6 +690,18 @@ export default function TaskListView() {
           setSelectedTask(null)
         }}
         onEdit={handleEditTask}
+      />
+
+      {/* タスク編集モーダル */}
+      <TaskEditModal
+        task={editingTask}
+        subtask={editingSubtask}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setEditingTask(null)
+          setEditingSubtask(null)
+        }}
       />
     </div>
   )
