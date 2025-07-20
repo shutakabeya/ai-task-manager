@@ -1,8 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
 import { useTaskStore } from '../types/taskStore'
-import { Task, SubTask } from '../types/task'
+import { Task } from '../types/task'
+import { useDragAndDrop } from '../hooks/useDragAndDrop'
+import { DraggableTaskItem } from './DraggableTaskItem'
+import { DroppableDateCell } from './DroppableDateCell'
 
 type ViewMode = 'date' | 'project'
 
@@ -10,6 +14,7 @@ export default function TaskListView() {
   const { tasks, toggleSubtask } = useTaskStore()
   const [viewMode, setViewMode] = useState<ViewMode>('date')
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
+  const { draggedItem, handleDragStart, handleDragEnd, handleDropOnDate } = useDragAndDrop()
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks)
@@ -188,246 +193,277 @@ export default function TaskListView() {
     const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
 
     return (
-      <div className="space-y-6 animate-fadeIn">
-        {sectionOrder.map(section => {
-          const items = groups[section]
-          if (items.length === 0) return null
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="space-y-6 animate-fadeIn">
+          {sectionOrder.map(section => {
+            const items = groups[section]
+            if (items.length === 0) return null
 
-          return (
-            <div key={section} className="space-y-2 animate-slideIn">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                {section === 'Today' && '今日'}
-                {section === 'Tomorrow' && '明日'}
-                {section === 'This Week' && '今週'}
-                {section === 'Future' && '将来'}
-                {section === 'No Date' && '日時未設定'}
-              </h3>
-              <div className="space-y-1">
-                {items.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 ${
-                      item.completed ? 'opacity-75' : ''
-                    }`}
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    {/* チェックボックス */}
-                    <button
-                      onClick={() => {
-                        if (item.isSubtask) {
-                          // サブタスクの場合、親タスクを探してトグル
-                          const parentTask = tasks.find(task => 
-                            task.subtasks.some(sub => sub.id === item.id)
-                          )
-                          if (parentTask) {
-                            toggleSubtask(parentTask.id, item.id)
-                          }
-                        }
-                      }}
-                      className={`checkbox-base flex-shrink-0 w-5 h-5 rounded border-2 ${
-                        item.completed
-                          ? 'bg-success border-success'
-                          : 'border-gray-300 hover:border-primary'
-                      }`}
+            return (
+              <div key={section} className="space-y-2 animate-slideIn">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  {section === 'Today' && '今日'}
+                  {section === 'Tomorrow' && '明日'}
+                  {section === 'This Week' && '今週'}
+                  {section === 'Future' && '将来'}
+                  {section === 'No Date' && '日時未設定'}
+                </h3>
+                <div className="space-y-1">
+                  {items.map((item, index) => (
+                    <DraggableTaskItem
+                      key={item.id}
+                      id={item.id}
+                      type={item.isSubtask ? 'subtask' : 'task'}
+                      taskId={item.isSubtask ? (tasks.find(task => 
+                        task.subtasks.some(sub => sub.id === item.id)
+                      )?.id || '') : item.id}
+                      subtaskId={item.isSubtask ? item.id : undefined}
+                      isDragging={draggedItem?.taskId === (item.isSubtask ? (tasks.find(task => 
+                        task.subtasks.some(sub => sub.id === item.id)
+                      )?.id || '') : item.id)}
                     >
-                      {item.completed && (
-                        <svg className="w-3 h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-
-                    {/* タスク情報 */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <p className={`text-sm font-medium ${
-                          item.completed ? 'text-gray-500 line-through' : 'text-text'
-                        }`}>
-                          {item.title}
-                        </p>
-                        {item.isSubtask && item.parentTask && (
-                          <span className="text-xs text-gray-400">
-                            ({item.parentTask})
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center space-x-3 mt-1">
-                        {item.datetime && (
-                          <span className="text-xs text-gray-500 flex items-center">
-                            <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <div
+                        className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 ${
+                          item.completed ? 'opacity-75' : ''
+                        }`}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        {/* チェックボックス */}
+                        <button
+                          onClick={() => {
+                            if (item.isSubtask) {
+                              // サブタスクの場合、親タスクを探してトグル
+                              const parentTask = tasks.find(task => 
+                                task.subtasks.some(sub => sub.id === item.id)
+                              )
+                              if (parentTask) {
+                                toggleSubtask(parentTask.id, item.id)
+                              }
+                            }
+                          }}
+                          className={`checkbox-base flex-shrink-0 w-5 h-5 rounded border-2 ${
+                            item.completed
+                              ? 'bg-success border-success'
+                              : 'border-gray-300 hover:border-primary'
+                          }`}
+                        >
+                          {item.completed && (
+                            <svg className="w-3 h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
-                            {formatDateTime(item.datetime)}
-                          </span>
-                        )}
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
-                          {item.category}
-                        </span>
+                          )}
+                        </button>
+
+                        {/* タスク情報 */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <p className={`text-sm font-medium ${
+                              item.completed ? 'text-gray-500 line-through' : 'text-text'
+                            }`}>
+                              {item.title}
+                            </p>
+                            {item.isSubtask && item.parentTask && (
+                              <span className="text-xs text-gray-400">
+                                ({item.parentTask})
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center space-x-3 mt-1">
+                            {item.datetime && (
+                              <span className="text-xs text-gray-500 flex items-center">
+                                <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {formatDateTime(item.datetime)}
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                              {item.category}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    </DraggableTaskItem>
+                  ))}
+                </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      </DndContext>
     )
   }
 
   // プロジェクト別ビュー（既存のビュー）
   const ProjectView = () => (
-    <div className="space-y-3 sm:space-y-4 animate-fadeIn">
-      {tasks.map((task, taskIndex) => (
-        <div
-          key={task.id}
-          className="card-white overflow-hidden"
-          style={{ animationDelay: `${taskIndex * 100}ms` }}
-        >
-          {/* タスクヘッダー */}
-          <div
-            className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
-            onClick={() => toggleTaskExpansion(task.id)}
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="space-y-3 sm:space-y-4 animate-fadeIn">
+        {tasks.map((task, taskIndex) => (
+          <DraggableTaskItem
+            key={task.id}
+            id={task.id}
+            type="task"
+            taskId={task.id}
+            isDragging={draggedItem?.taskId === task.id}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="flex-shrink-0">
-                  <div className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${getCategoryColor(task.category)}`}>
-                    {task.category}
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
-                  <div className="flex items-center space-x-3 mt-1">
-                    {task.datetime && (
-                      <span className="text-xs text-gray-500 flex items-center">
-                        <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {formatDateTime(task.datetime)}
-                      </span>
-                    )}
-                    {task.estimatedTime && (
-                      <span className="text-xs text-gray-500 flex items-center">
-                        <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {task.estimatedTime}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">
-                {/* 進捗バー */}
-                <div className="flex items-center space-x-2">
-                  <div className="w-16 sm:w-20 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-success h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${getCompletionRate(task)}%` }}
-                    />
-                  </div>
-                  <span className="text-xs sm:text-sm text-gray-500">
-                    {Math.round(getCompletionRate(task))}%
-                  </span>
-                </div>
-                
-                {/* 展開アイコン */}
-                <svg
-                  className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-all duration-150 ease-out flex-shrink-0 ${
-                    expandedTasks.has(task.id) ? 'rotate-180' : ''
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* サブタスク一覧 */}
-          {expandedTasks.has(task.id) && (
-            <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
-              <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-                {getSortedSubtasks(task).map((subtask, subtaskIndex) => (
-                  <div
-                    key={subtask.id}
-                    className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 ${
-                      subtask.completed ? 'opacity-75' : ''
-                    }`}
-                    style={{ animationDelay: `${subtaskIndex * 50}ms` }}
-                  >
-                    {/* チェックボックス */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleSubtask(task.id, subtask.id)
-                      }}
-                      className={`checkbox-base flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mt-0.5 ${
-                        subtask.completed
-                          ? 'bg-success border-success'
-                          : 'border-gray-300 hover:border-primary'
-                      }`}
-                    >
-                      {subtask.completed && (
-                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-
-                    {/* サブタスク情報 */}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${
-                        subtask.completed ? 'text-gray-500 line-through' : 'text-text'
-                      }`}>
-                        {subtask.title}
-                      </p>
-                      
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1">
-                        {subtask.datetime && (
+            <div
+              className="card-white overflow-hidden"
+              style={{ animationDelay: `${taskIndex * 100}ms` }}
+            >
+              {/* タスクヘッダー */}
+              <div
+                className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
+                onClick={() => toggleTaskExpansion(task.id)}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${getCategoryColor(task.category)}`}>
+                        {task.category}
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
+                      <div className="flex items-center space-x-3 mt-1">
+                        {task.datetime && (
                           <span className="text-xs text-gray-500 flex items-center">
                             <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            {formatDateTime(subtask.datetime)}
+                            {formatDateTime(task.datetime)}
                           </span>
                         )}
-                        {subtask.estimatedTime && (
+                        {task.estimatedTime && (
                           <span className="text-xs text-gray-500 flex items-center">
                             <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            {subtask.estimatedTime}
-                          </span>
-                        )}
-                        {subtask.category && (
-                          <span className="text-xs text-gray-500 flex items-center">
-                            <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            {subtask.category}
+                            {task.estimatedTime}
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                ))}
+                  
+                  <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">
+                    {/* 進捗バー */}
+                    <div className="flex items-center space-x-2">
+                      <div className="w-16 sm:w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-success h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${getCompletionRate(task)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500">
+                        {Math.round(getCompletionRate(task))}%
+                      </span>
+                    </div>
+                    
+                    {/* 展開アイコン */}
+                    <svg
+                      className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-all duration-150 ease-out flex-shrink-0 ${
+                        expandedTasks.has(task.id) ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
+
+              {/* サブタスク一覧 */}
+              {expandedTasks.has(task.id) && (
+                <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
+                  <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                    {getSortedSubtasks(task).map((subtask, subtaskIndex) => (
+                      <DraggableTaskItem
+                        key={subtask.id}
+                        id={subtask.id}
+                        type="subtask"
+                        taskId={task.id}
+                        subtaskId={subtask.id}
+                        isDragging={draggedItem?.subtaskId === subtask.id}
+                      >
+                        <div
+                          className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 ${
+                            subtask.completed ? 'opacity-75' : ''
+                          }`}
+                          style={{ animationDelay: `${subtaskIndex * 50}ms` }}
+                        >
+                          {/* チェックボックス */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleSubtask(task.id, subtask.id)
+                            }}
+                            className={`checkbox-base flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mt-0.5 ${
+                              subtask.completed
+                                ? 'bg-success border-success'
+                                : 'border-gray-300 hover:border-primary'
+                            }`}
+                          >
+                            {subtask.completed && (
+                              <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+
+                          {/* サブタスク情報 */}
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${
+                              subtask.completed ? 'text-gray-500 line-through' : 'text-text'
+                            }`}>
+                              {subtask.title}
+                            </p>
+                            
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1">
+                              {subtask.datetime && (
+                                <span className="text-xs text-gray-500 flex items-center">
+                                  <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                  {formatDateTime(subtask.datetime)}
+                                </span>
+                              )}
+                              {subtask.estimatedTime && (
+                                <span className="text-xs text-gray-500 flex items-center">
+                                  <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  {subtask.estimatedTime}
+                                </span>
+                              )}
+                              {subtask.category && (
+                                <span className="text-xs text-gray-500 flex items-center">
+                                  <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                  </svg>
+                                  {subtask.category}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </DraggableTaskItem>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      ))}
-    </div>
+          </DraggableTaskItem>
+        ))}
+      </div>
+    </DndContext>
   )
 
   return (

@@ -1,8 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
 import { useTaskStore } from '../types/taskStore'
 import { Task, SubTask } from '../types/task'
+import { useDragAndDrop } from '../hooks/useDragAndDrop'
+import { DraggableTaskItem } from './DraggableTaskItem'
+import { DroppableDateCell } from './DroppableDateCell'
 
 type ViewMode = 'week' | 'month'
 
@@ -12,6 +16,7 @@ export default function CalendarView() {
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showDateModal, setShowDateModal] = useState(false)
+  const { draggedItem, handleDragStart, handleDragEnd, handleDropOnDate } = useDragAndDrop()
 
   // 現在の週の日付を取得
   const getWeekDates = (date: Date) => {
@@ -243,98 +248,114 @@ export default function CalendarView() {
     const weekDates = getWeekDates(currentDate)
 
     return (
-      <div className="space-y-4 sm:space-y-6 animate-fadeIn">
-        {/* ナビゲーション */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => {
-              const newDate = new Date(currentDate)
-              newDate.setDate(currentDate.getDate() - 7)
-              setCurrentDate(newDate)
-            }}
-            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
-          >
-            ← 前週
-          </button>
-          
-          <h3 className="text-base sm:text-lg font-medium text-text">
-            {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
-          </h3>
-          
-          <button
-            onClick={() => {
-              const newDate = new Date(currentDate)
-              newDate.setDate(currentDate.getDate() + 7)
-              setCurrentDate(newDate)
-            }}
-            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
-          >
-            次週 →
-          </button>
-        </div>
-
-        {/* カレンダーグリッド */}
-        <div className="card-white overflow-hidden">
-          {/* 曜日ヘッダー */}
-          <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
-            {['日', '月', '火', '水', '木', '金', '土'].map(day => (
-              <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-700">
-                {day}
-              </div>
-            ))}
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="space-y-4 sm:space-y-6 animate-fadeIn">
+          {/* ナビゲーション */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                newDate.setDate(currentDate.getDate() - 7)
+                setCurrentDate(newDate)
+              }}
+              className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
+            >
+              ← 前週
+            </button>
+            
+            <h3 className="text-base sm:text-lg font-medium text-text">
+              {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
+            </h3>
+            
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                newDate.setDate(currentDate.getDate() + 7)
+                setCurrentDate(newDate)
+              }}
+              className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
+            >
+              次週 →
+            </button>
           </div>
 
-          {/* 日付グリッド */}
-          <div className="grid grid-cols-7">
-            {weekDates.map((date, index) => {
-              const isToday = date.toDateString() === new Date().toDateString()
-              const subtasks = getSubtasksForDate(date)
-              
-              return (
-                <div
-                  key={index}
-                  className={`min-h-24 sm:min-h-32 border-r border-gray-200 last:border-r-0 ${
-                    isToday ? 'bg-blue-50' : ''
-                  }`}
-                >
-                  {/* 日付 */}
-                  <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
-                    isToday ? 'text-primary' : 'text-text'
-                  }`}>
-                    {date.getDate()}
-                  </div>
-
-                  {/* サブタスク */}
-                  <div className="p-1 sm:p-2 space-y-1">
-                    {subtasks.map(({ task, subtask }) => (
-                      <div
-                        key={subtask.id}
-                        className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
-                          subtask.completed ? 'opacity-75' : ''
-                        }`}
-                        title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
-                      >
-                        <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
-                          {subtask.title}
-                        </div>
-                        <div className="text-xs opacity-90">
-                          {formatTime(subtask.datetime!)}
-                          {subtask.estimatedTime && ` (${subtask.estimatedTime})`}
-                        </div>
-                        {subtask.category && (
-                          <div className="text-xs opacity-75 mt-1">
-                            {subtask.category}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+          {/* カレンダーグリッド */}
+          <div className="card-white overflow-hidden">
+            {/* 曜日ヘッダー */}
+            <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+              {['日', '月', '火', '水', '木', '金', '土'].map(day => (
+                <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-700">
+                  {day}
                 </div>
-              )
-            })}
+              ))}
+            </div>
+
+            {/* 日付グリッド */}
+            <div className="grid grid-cols-7">
+              {weekDates.map((date, index) => {
+                const isToday = date.toDateString() === new Date().toDateString()
+                const subtasks = getSubtasksForDate(date)
+                
+                return (
+                  <DroppableDateCell
+                    key={index}
+                    id={`date-${date.toISOString()}`}
+                    date={date}
+                    onDrop={handleDropOnDate}
+                  >
+                    <div
+                      className={`min-h-24 sm:min-h-32 border-r border-gray-200 last:border-r-0 ${
+                        isToday ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      {/* 日付 */}
+                      <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
+                        isToday ? 'text-primary' : 'text-text'
+                      }`}>
+                        {date.getDate()}
+                      </div>
+
+                      {/* サブタスク */}
+                      <div className="p-1 sm:p-2 space-y-1">
+                        {subtasks.map(({ task, subtask }) => (
+                          <DraggableTaskItem
+                            key={subtask.id}
+                            id={subtask.id}
+                            type="subtask"
+                            taskId={task.id}
+                            subtaskId={subtask.id}
+                            isDragging={draggedItem?.subtaskId === subtask.id}
+                          >
+                            <div
+                              className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
+                                subtask.completed ? 'opacity-75' : ''
+                              }`}
+                              title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
+                            >
+                              <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
+                                {subtask.title}
+                              </div>
+                              <div className="text-xs opacity-90">
+                                {formatTime(subtask.datetime!)}
+                                {subtask.estimatedTime && ` (${subtask.estimatedTime})`}
+                              </div>
+                              {subtask.category && (
+                                <div className="text-xs opacity-75 mt-1">
+                                  {subtask.category}
+                                </div>
+                              )}
+                            </div>
+                          </DraggableTaskItem>
+                        ))}
+                      </div>
+                    </div>
+                  </DroppableDateCell>
+                )
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      </DndContext>
     )
   }
 
@@ -349,97 +370,113 @@ export default function CalendarView() {
     }
 
     return (
-      <div className="space-y-4 sm:space-y-6 animate-fadeIn">
-        {/* ナビゲーション */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => {
-              const newDate = new Date(currentDate)
-              newDate.setMonth(currentDate.getMonth() - 1)
-              setCurrentDate(newDate)
-            }}
-            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
-          >
-            ← 前月
-          </button>
-          
-          <h3 className="text-base sm:text-lg font-medium text-text">
-            {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
-          </h3>
-          
-          <button
-            onClick={() => {
-              const newDate = new Date(currentDate)
-              newDate.setMonth(currentDate.getMonth() + 1)
-              setCurrentDate(newDate)
-            }}
-            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
-          >
-            次月 →
-          </button>
-        </div>
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="space-y-4 sm:space-y-6 animate-fadeIn">
+          {/* ナビゲーション */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                newDate.setMonth(currentDate.getMonth() - 1)
+                setCurrentDate(newDate)
+              }}
+              className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
+            >
+              ← 前月
+            </button>
+            
+            <h3 className="text-base sm:text-lg font-medium text-text">
+              {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
+            </h3>
+            
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                newDate.setMonth(currentDate.getMonth() + 1)
+                setCurrentDate(newDate)
+              }}
+              className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
+            >
+              次月 →
+            </button>
+          </div>
 
-        {/* カレンダーグリッド */}
-        <div className="card-white overflow-hidden">
-          {/* 曜日ヘッダー */}
-          <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
-            {['日', '月', '火', '水', '木', '金', '土'].map(day => (
-              <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-700">
-                {day}
+          {/* カレンダーグリッド */}
+          <div className="card-white overflow-hidden">
+            {/* 曜日ヘッダー */}
+            <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+              {['日', '月', '火', '水', '木', '金', '土'].map(day => (
+                <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-700">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* 週のグリッド */}
+            {weeks.map((week, weekIndex) => (
+              <div key={weekIndex} className="grid grid-cols-7 border-b border-gray-200 last:border-b-0">
+                {week.map((date, dayIndex) => {
+                  const isToday = date.toDateString() === new Date().toDateString()
+                  const isCurrentMonth = date.getMonth() === currentDate.getMonth()
+                  const subtasks = getSubtasksForDate(date)
+                  
+                  return (
+                    <DroppableDateCell
+                      key={dayIndex}
+                      id={`date-${date.toISOString()}`}
+                      date={date}
+                      onDrop={handleDropOnDate}
+                    >
+                      <div
+                        className={`calendar-cell min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
+                          isToday ? 'bg-blue-50' : ''
+                        } ${!isCurrentMonth ? 'bg-gray-50' : ''}`}
+                        onClick={() => handleDateClick(date)}
+                      >
+                        {/* 日付 */}
+                        <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
+                          isToday ? 'text-primary' : isCurrentMonth ? 'text-text' : 'text-gray-400'
+                        }`}>
+                          {date.getDate()}
+                        </div>
+
+                        {/* サブタスク（最大3件まで表示） */}
+                        <div className="p-1 space-y-1">
+                          {subtasks.slice(0, 3).map(({ task, subtask }, index) => (
+                            <DraggableTaskItem
+                              key={subtask.id}
+                              id={subtask.id}
+                              type="subtask"
+                              taskId={task.id}
+                              subtaskId={subtask.id}
+                              isDragging={draggedItem?.subtaskId === subtask.id}
+                            >
+                              <div
+                                className={`p-1 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
+                                  subtask.completed ? 'opacity-75' : ''
+                                }`}
+                              >
+                                <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
+                                  {subtask.title}
+                                </div>
+                              </div>
+                            </DraggableTaskItem>
+                          ))}
+                          {subtasks.length > 3 && (
+                            <div className="text-xs text-gray-500 text-center">
+                              +{subtasks.length - 3}件
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </DroppableDateCell>
+                  )
+                })}
               </div>
             ))}
           </div>
-
-          {/* 週のグリッド */}
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="grid grid-cols-7 border-b border-gray-200 last:border-b-0">
-              {week.map((date, dayIndex) => {
-                const isToday = date.toDateString() === new Date().toDateString()
-                const isCurrentMonth = date.getMonth() === currentDate.getMonth()
-                const subtasks = getSubtasksForDate(date)
-                
-                return (
-                  <div
-                    key={dayIndex}
-                    className={`calendar-cell min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      isToday ? 'bg-blue-50' : ''
-                    } ${!isCurrentMonth ? 'bg-gray-50' : ''}`}
-                    onClick={() => handleDateClick(date)}
-                  >
-                    {/* 日付 */}
-                    <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
-                      isToday ? 'text-primary' : isCurrentMonth ? 'text-text' : 'text-gray-400'
-                    }`}>
-                      {date.getDate()}
-                    </div>
-
-                    {/* サブタスク（最大3件まで表示） */}
-                    <div className="p-1 space-y-1">
-                      {subtasks.slice(0, 3).map(({ task, subtask }, index) => (
-                        <div
-                          key={subtask.id}
-                          className={`p-1 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
-                            subtask.completed ? 'opacity-75' : ''
-                          }`}
-                        >
-                          <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
-                            {subtask.title}
-                          </div>
-                        </div>
-                      ))}
-                      {subtasks.length > 3 && (
-                        <div className="text-xs text-gray-500 text-center">
-                          +{subtasks.length - 3}件
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          ))}
         </div>
-      </div>
+      </DndContext>
     )
   }
 
