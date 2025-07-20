@@ -4,7 +4,7 @@ import { useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { useTaskStore } from '../types/taskStore'
-import { Task, SubTask } from '../types/task'
+import { Task, Subtask } from '../types/task'
 
 interface AddTaskModalProps {
   isOpen: boolean

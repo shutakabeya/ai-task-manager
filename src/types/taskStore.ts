@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { Task, SubTask } from './task'
+import { Task, Subtask } from './task'
 
 interface TaskStore {
   tasks: Task[]
@@ -8,7 +8,7 @@ interface TaskStore {
   updateTask: (taskId: string, updatedTask: Task) => void
   deleteTask: (taskId: string) => void
   toggleSubtask: (taskId: string, subtaskId: string) => void
-  updateSubtask: (taskId: string, subtaskId: string, updatedSubtask: SubTask) => void
+  updateSubtask: (taskId: string, subtaskId: string, updatedSubtask: Subtask) => void
   deleteSubtask: (taskId: string, subtaskId: string) => void
   clearAllTasks: () => void
   importTasks: (tasks: Task[]) => void

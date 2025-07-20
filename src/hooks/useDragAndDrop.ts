@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core'
 import { useTaskStore } from '../types/taskStore'
-import { Task, SubTask } from '../types/task'
+import { Task, Subtask } from '../types/task'
 
 export const useDragAndDrop = () => {
   const { tasks, updateTask, updateSubtask } = useTaskStore()
@@ -33,7 +33,7 @@ export const useDragAndDrop = () => {
     const subtask = task.subtasks.find(s => s.id === subtaskId)
     if (!subtask) return
 
-    const updatedSubtask: SubTask = {
+    const updatedSubtask: Subtask = {
       ...subtask,
       datetime: newDateTime
     }
