@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Task Manager
 
 AI-powered task management application built with Next.js, TypeScript, and TailwindCSS.
@@ -150,3 +151,7 @@ type SubTask = {
 ## License
 
 This project is licensed under the MIT License. 
+=======
+# ai-task-manager
+AI-powered task management application with natural language processing
+>>>>>>> f72592c1104c013ddfac8ae56a14619758609e6a
