@@ -91,25 +91,9 @@ export const useDragAndDrop = () => {
     setDraggedItem(null)
   }, [updateTaskDateTime, updateSubtaskDateTime])
 
-  // 日付にドロップ（レガシー関数、後で削除予定）
-  const handleDropOnDate = useCallback((date: Date) => {
-    if (!draggedItem) return
-
-    const newDateTime = date.toISOString()
-
-    if (draggedItem.type === 'task') {
-      updateTaskDateTime(draggedItem.taskId, newDateTime)
-    } else if (draggedItem.type === 'subtask' && draggedItem.subtaskId) {
-      updateSubtaskDateTime(draggedItem.taskId, draggedItem.subtaskId, newDateTime)
-    }
-
-    setDraggedItem(null)
-  }, [draggedItem, updateTaskDateTime, updateSubtaskDateTime])
-
   return {
     draggedItem,
     handleDragStart,
-    handleDragEnd,
-    handleDropOnDate
+    handleDragEnd
   }
 } 

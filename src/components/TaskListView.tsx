@@ -14,7 +14,7 @@ export default function TaskListView() {
   const { tasks, toggleSubtask } = useTaskStore()
   const [viewMode, setViewMode] = useState<ViewMode>('date')
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
-  const { draggedItem, handleDragStart, handleDragEnd, handleDropOnDate } = useDragAndDrop()
+  const { draggedItem, handleDragStart, handleDragEnd } = useDragAndDrop()
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks)

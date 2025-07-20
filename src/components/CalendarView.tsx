@@ -16,7 +16,7 @@ export default function CalendarView() {
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showDateModal, setShowDateModal] = useState(false)
-  const { draggedItem, handleDragStart, handleDragEnd, handleDropOnDate } = useDragAndDrop()
+  const { draggedItem, handleDragStart, handleDragEnd } = useDragAndDrop()
 
   // 現在の週の日付を取得
   const getWeekDates = (date: Date) => {
@@ -305,7 +305,6 @@ export default function CalendarView() {
                     key={index}
                     id={`date-${date.toISOString()}`}
                     date={date}
-                    onDrop={handleDropOnDate}
                   >
                     <div
                       className={`min-h-24 sm:min-h-32 border-r border-gray-200 last:border-r-0 ${
@@ -426,7 +425,6 @@ export default function CalendarView() {
                     key={index}
                     id={`date-${date.toISOString()}`}
                     date={date}
-                    onDrop={handleDropOnDate}
                   >
                     <div
                       className={`min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 ${
