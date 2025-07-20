@@ -157,29 +157,42 @@ export default function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskD
           </div>
           
           {/* アクションボタン */}
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse sm:space-x-3 sm:space-x-reverse">
-            <button
-              type="button"
-              onClick={() => onEdit(task)}
-              className="btn-primary w-full sm:w-auto mb-2 sm:mb-0 px-4 py-2"
-            >
-              ✏️ 編集
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="btn-danger w-full sm:w-auto mb-2 sm:mb-0 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isDeleting ? '削除中...' : '🗑️ 削除'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary w-full sm:w-auto px-4 py-2"
-            >
-              閉じる
-            </button>
+          <div className="bg-gray-50 px-4 py-4 sm:px-6">
+            <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3 sm:justify-between">
+              {/* 削除ボタン */}
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="btn-danger w-full sm:w-auto px-6 py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {isDeleting ? '削除中...' : '削除'}
+              </button>
+
+              {/* 編集・閉じるボタン */}
+              <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="btn-secondary w-full sm:w-auto px-6 py-3 text-base font-medium"
+                >
+                  閉じる
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onEdit(task)}
+                  className="btn-primary w-full sm:w-auto px-6 py-3 text-base font-medium"
+                >
+                  <svg className="inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  編集
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

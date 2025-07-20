@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 import { useTaskStore } from '../types/taskStore'
-import { Task, SubTask } from '../types/task'
+import { Task, Subtask } from '../types/task'
 
 import { DragHandle } from './DragHandle'
 import TaskDetailModal from './TaskDetailModal'
@@ -19,7 +19,7 @@ export default function TaskListView() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
-  const [editingSubtask, setEditingSubtask] = useState<{task: Task, subtask: SubTask} | null>(null)
+  const [editingSubtask, setEditingSubtask] = useState<{task: Task, subtask: Subtask} | null>(null)
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks)
@@ -43,7 +43,7 @@ export default function TaskListView() {
     setIsDetailModalOpen(false)
   }
 
-  const handleEditSubtask = (task: Task, subtask: SubTask) => {
+  const handleEditSubtask = (task: Task, subtask: Subtask) => {
     setEditingSubtask({ task, subtask })
     setEditingTask(null)
     setIsEditModalOpen(true)
@@ -346,7 +346,7 @@ export default function TaskListView() {
                       </div>
 
                       {/* アクションボタン */}
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-2">
                         {item.isSubtask && item.parentTaskId && (
                           <>
                             <button
@@ -358,10 +358,10 @@ export default function TaskListView() {
                                   handleEditSubtask(parentTask, subtask)
                                 }
                               }}
-                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                              className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-md hover:bg-blue-50"
                               title="編集"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                             </button>
@@ -372,10 +372,10 @@ export default function TaskListView() {
                                   handleDeleteSubtask(item.parentTaskId, item.id)
                                 }
                               }}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                              className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
                               title="削除"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>
@@ -481,17 +481,17 @@ export default function TaskListView() {
                   </div>
                   
                   {/* アクションボタン */}
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center space-x-2">
                     <button
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
                         handleEditTask(task)
                       }}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-md hover:bg-blue-50"
                       title="編集"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </button>
@@ -501,10 +501,10 @@ export default function TaskListView() {
                         e.stopPropagation()
                         handleDeleteTask(task.id)
                       }}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
                       title="削除"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
@@ -610,16 +610,16 @@ export default function TaskListView() {
                         </div>
 
                         {/* サブタスクアクションボタン */}
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               handleEditSubtask(task, subtask)
                             }}
-                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-md hover:bg-blue-50"
                             title="編集"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
@@ -628,10 +628,10 @@ export default function TaskListView() {
                               e.stopPropagation()
                               handleDeleteSubtask(task.id, subtask.id)
                             }}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
                             title="削除"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>

@@ -1,4 +1,4 @@
-export type SubTask = {
+export type Subtask = {
   id: string;
   title: string;
   datetime?: string;        // ISO形式
@@ -15,5 +15,5 @@ export type Task = {
   datetime?: string;        // メインタスクの日時（ISO形式）
   estimatedTime?: string;   // メインタスクの予想時間
   originalText: string;     // 元の自然文入力内容
-  subtasks: SubTask[];
+  subtasks: Subtask[];
 }; 
