@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
 import { useTaskStore } from '../types/taskStore'
-import { Task, SubTask } from '../types/task'
+import { Task, Subtask } from '../types/task'
 import { useDragAndDrop } from '../hooks/useDragAndDrop'
 import { DraggableTaskItem } from './DraggableTaskItem'
 import { DroppableDateCell } from './DroppableDateCell'
@@ -63,9 +63,9 @@ export default function CalendarView() {
   }
 
   // 指定された日付のサブタスクを取得
-  const getSubtasksForDate = (date: Date): { task: Task; subtask: SubTask }[] => {
+  const getSubtasksForDate = (date: Date): { task: Task; subtask: Subtask }[] => {
     const dateString = date.toISOString().split('T')[0]
-    const result: { task: Task; subtask: SubTask }[] = []
+    const result: { task: Task; subtask: Subtask }[] = []
     
     tasks.forEach(task => {
       // メインタスクの日時をチェック
