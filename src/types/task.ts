@@ -3,6 +3,7 @@ export type SubTask = {
   title: string;
   datetime?: string;        // ISO形式
   estimatedTime?: string;   // e.g. "1.5h"
+  category?: string;        // サブタスクのカテゴリ
   completed: boolean;
 };
 
