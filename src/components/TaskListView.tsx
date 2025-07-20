@@ -2,10 +2,13 @@
 
 import { useState } from 'react'
 import { useTaskStore } from '../types/taskStore'
-import { Task } from '../types/task'
+import { Task, SubTask } from '../types/task'
+
+type ViewMode = 'date' | 'project'
 
 export default function TaskListView() {
   const { tasks, toggleSubtask } = useTaskStore()
+  const [viewMode, setViewMode] = useState<ViewMode>('date')
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
 
   const toggleTaskExpansion = (taskId: string) => {
@@ -42,6 +45,104 @@ export default function TaskListView() {
     })
   }
 
+  const formatTime = (datetime: string) => {
+    const date = new Date(datetime)
+    return date.toLocaleTimeString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  // 日付セクションを取得
+  const getDateSection = (date: Date) => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+    
+    const thisWeek = new Date(today)
+    thisWeek.setDate(today.getDate() + 7)
+    
+    const dateString = date.toDateString()
+    const todayString = today.toDateString()
+    const tomorrowString = tomorrow.toDateString()
+    
+    if (dateString === todayString) return 'Today'
+    if (dateString === tomorrowString) return 'Tomorrow'
+    if (date < thisWeek) return 'This Week'
+    return 'Future'
+  }
+
+  // 日付順でソートされたタスクアイテムを取得
+  const getSortedTaskItems = () => {
+    const items: Array<{
+      id: string
+      title: string
+      datetime?: string
+      category: string
+      completed: boolean
+      isSubtask: boolean
+      parentTask?: string
+    }> = []
+
+    tasks.forEach(task => {
+      // メインタスクを追加（日時がある場合のみ）
+      if (task.subtasks.length === 0) {
+        // サブタスクがない場合は、タスク自体をアイテムとして追加
+        items.push({
+          id: task.id,
+          title: task.title,
+          category: task.category,
+          completed: false, // メインタスクは完了状態を持たない
+          isSubtask: false
+        })
+      } else {
+        // サブタスクを追加
+        task.subtasks.forEach(subtask => {
+          items.push({
+            id: subtask.id,
+            title: subtask.title,
+            datetime: subtask.datetime,
+            category: subtask.category || task.category,
+            completed: subtask.completed,
+            isSubtask: true,
+            parentTask: task.title
+          })
+        })
+      }
+    })
+
+    // 日時でソート（日時がないものは最後）
+    return items.sort((a, b) => {
+      if (!a.datetime && !b.datetime) return 0
+      if (!a.datetime) return 1
+      if (!b.datetime) return -1
+      return new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+    })
+  }
+
+  // 日付別にグループ化
+  const getGroupedByDate = () => {
+    const items = getSortedTaskItems()
+    const groups: { [key: string]: typeof items } = {
+      'Today': [],
+      'Tomorrow': [],
+      'This Week': [],
+      'Future': [],
+      'No Date': []
+    }
+
+    items.forEach(item => {
+      if (item.datetime) {
+        const section = getDateSection(new Date(item.datetime))
+        groups[section].push(item)
+      } else {
+        groups['No Date'].push(item)
+      }
+    })
+
+    return groups
+  }
+
   // サブタスクを日時順でソート
   const getSortedSubtasks = (task: Task) => {
     return [...task.subtasks].sort((a, b) => {
@@ -66,10 +167,102 @@ export default function TaskListView() {
     )
   }
 
-  return (
+  // 日付順ビュー
+  const DateView = () => {
+    const groups = getGroupedByDate()
+    const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
+
+    return (
+      <div className="space-y-6">
+        {sectionOrder.map(section => {
+          const items = groups[section]
+          if (items.length === 0) return null
+
+          return (
+            <div key={section} className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                {section === 'Today' && '今日'}
+                {section === 'Tomorrow' && '明日'}
+                {section === 'This Week' && '今週'}
+                {section === 'Future' && '将来'}
+                {section === 'No Date' && '日付なし'}
+              </h3>
+              <div className="space-y-1">
+                {items.map(item => (
+                  <div
+                    key={item.id}
+                    className={`flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 transition-all ${
+                      item.completed ? 'opacity-75' : ''
+                    }`}
+                  >
+                    {/* チェックボックス */}
+                    <button
+                      onClick={() => {
+                        if (item.isSubtask) {
+                          // サブタスクの場合、親タスクを探してトグル
+                          const parentTask = tasks.find(task => 
+                            task.subtasks.some(sub => sub.id === item.id)
+                          )
+                          if (parentTask) {
+                            toggleSubtask(parentTask.id, item.id)
+                          }
+                        }
+                      }}
+                      className={`flex-shrink-0 w-5 h-5 rounded border-2 transition-colors ${
+                        item.completed
+                          ? 'bg-success border-success'
+                          : 'border-gray-300 hover:border-primary'
+                      }`}
+                    >
+                      {item.completed && (
+                        <svg className="w-3 h-3 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+
+                    {/* タスク情報 */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <p className={`text-sm font-medium ${
+                          item.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                        }`}>
+                          {item.title}
+                        </p>
+                        {item.isSubtask && item.parentTask && (
+                          <span className="text-xs text-gray-400">
+                            ({item.parentTask})
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-3 mt-1">
+                        {item.datetime && (
+                          <span className="text-xs text-gray-500 flex items-center">
+                            <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {formatTime(item.datetime)}
+                          </span>
+                        )}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // プロジェクト別ビュー（既存のビュー）
+  const ProjectView = () => (
     <div className="space-y-3 sm:space-y-4">
-      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">タスク一覧</h2>
-      
       {tasks.map(task => (
         <div
           key={task.id}
@@ -196,6 +389,41 @@ export default function TaskListView() {
           )}
         </div>
       ))}
+    </div>
+  )
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">タスク一覧</h2>
+        
+        {/* ビューモード切り替え */}
+        <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
+          <button
+            onClick={() => setViewMode('date')}
+            className={`flex-1 sm:flex-none px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              viewMode === 'date'
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            📅 日付順
+          </button>
+          <button
+            onClick={() => setViewMode('project')}
+            className={`flex-1 sm:flex-none px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              viewMode === 'project'
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            📁 プロジェクト別
+          </button>
+        </div>
+      </div>
+
+      {/* ビューコンテンツ */}
+      {viewMode === 'date' ? <DateView /> : <ProjectView />}
     </div>
   )
 } 
