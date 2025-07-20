@@ -22,12 +22,26 @@ export default function TaskListView() {
   }
 
   const getCategoryColor = (category: string) => {
-    const colors = {
-      '仕事': 'bg-blue-100 text-blue-800',
-      'プライベート': 'bg-green-100 text-green-800',
-      '学習': 'bg-purple-100 text-purple-800',
-    }
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800'
+    // カテゴリ名からハッシュ値を生成して色を決定
+    const hash = category.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0)
+      return a & a
+    }, 0)
+    
+    const colors = [
+      'bg-blue-100 text-blue-800',
+      'bg-green-100 text-green-800',
+      'bg-purple-100 text-purple-800',
+      'bg-yellow-100 text-yellow-800',
+      'bg-red-100 text-red-800',
+      'bg-indigo-100 text-indigo-800',
+      'bg-pink-100 text-pink-800',
+      'bg-orange-100 text-orange-800',
+      'bg-teal-100 text-teal-800',
+      'bg-cyan-100 text-cyan-800'
+    ]
+    
+    return colors[Math.abs(hash) % colors.length]
   }
 
   const getCompletionRate = (task: Task) => {

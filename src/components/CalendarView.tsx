@@ -84,12 +84,26 @@ export default function CalendarView() {
       return 'bg-gray-400'
     }
     
-    const colors = {
-      '仕事': 'bg-blue-500',
-      'プライベート': 'bg-green-500',
-      '学習': 'bg-purple-500',
-    }
-    return colors[category as keyof typeof colors] || 'bg-gray-500'
+    // カテゴリ名からハッシュ値を生成して色を決定
+    const hash = category.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0)
+      return a & a
+    }, 0)
+    
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-purple-500',
+      'bg-yellow-500',
+      'bg-red-500',
+      'bg-indigo-500',
+      'bg-pink-500',
+      'bg-orange-500',
+      'bg-teal-500',
+      'bg-cyan-500'
+    ]
+    
+    return colors[Math.abs(hash) % colors.length]
   }
 
   const formatTime = (datetime: string) => {
@@ -444,18 +458,25 @@ export default function CalendarView() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
         <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-2 sm:mb-3">凡例</h4>
         <div className="flex flex-wrap gap-2 sm:gap-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
-            <span className="text-xs sm:text-sm text-gray-600">仕事</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span className="text-xs sm:text-sm text-gray-600">プライベート</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-500 rounded"></div>
-            <span className="text-xs sm:text-sm text-gray-600">学習</span>
-          </div>
+          {/* 実際に使用されているカテゴリを表示 */}
+          {(() => {
+            const usedCategories = new Set<string>()
+            tasks.forEach(task => {
+              usedCategories.add(task.category)
+              task.subtasks.forEach(subtask => {
+                if (subtask.category) {
+                  usedCategories.add(subtask.category)
+                }
+              })
+            })
+            
+            return Array.from(usedCategories).slice(0, 6).map(category => (
+              <div key={category} className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded ${getCategoryColor(category, false)}`}></div>
+                <span className="text-xs sm:text-sm text-gray-600">{category}</span>
+              </div>
+            ))
+          })()}
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-gray-400 rounded"></div>
             <span className="text-xs sm:text-sm text-gray-600">完了</span>

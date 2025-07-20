@@ -35,11 +35,12 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       return
     }
 
-    // サブタスクにIDを付与
+    // サブタスクにIDを付与し、カテゴリが空の場合はメインタスクのカテゴリを適用
     const subtasksWithIds = subtasks.map((subtask, index) => ({
       ...subtask,
       id: `subtask-${Date.now()}-${index}`,
-      completed: false
+      completed: false,
+      category: subtask.category || formData.category // カテゴリが空の場合はメインタスクのカテゴリを適用
     }))
 
     const newTask: Task = {
@@ -86,12 +87,13 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         throw new Error(data.error || 'AIの処理に失敗しました')
       }
 
-      // AI生成されたサブタスクを初期化
+      // AI生成されたサブタスクを初期化（カテゴリは空にして、メインタスクのカテゴリを適用）
       const initialSubtasks = (data.subtasks || []).map((subtask: any) => ({
         id: '',
         title: subtask.title,
         datetime: undefined,
         estimatedTime: '',
+        category: '', // 空にして、メインタスクのカテゴリを適用
         completed: false
       }))
       
@@ -119,6 +121,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       title: '', 
       datetime: undefined, 
       estimatedTime: '', 
+      category: '', // 空にして、メインタスクのカテゴリを適用
       completed: false 
     }])
   }
@@ -157,18 +160,15 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
               カテゴリ
             </label>
-            <select
+            <input
+              type="text"
               id="category"
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+              placeholder="カテゴリを入力（例：仕事、プライベート、学習など）"
               required
-            >
-              <option value="">カテゴリを選択</option>
-              <option value="仕事">仕事</option>
-              <option value="プライベート">プライベート</option>
-              <option value="学習">学習</option>
-            </select>
+            />
           </div>
 
           {/* タイトル */}
@@ -292,17 +292,20 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                       />
                     </div>
 
-                    {/* カテゴリ */}
+                    {/* カテゴリ（オプション） */}
                     <div className="sm:col-span-2">
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        カテゴリ
+                        カテゴリ（オプション）
+                        <span className="text-gray-500 ml-1">
+                          - 空欄の場合は「{formData.category || 'メインタスク'}」が適用されます
+                        </span>
                       </label>
                       <input
                         type="text"
                         value={subtask.category || ''}
                         onChange={(e) => handleSubtaskChange(index, 'category', e.target.value)}
                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                        placeholder="カテゴリ"
+                        placeholder={`カテゴリを入力（例：${formData.category || 'メインタスク'}）`}
                       />
                     </div>
                   </div>
