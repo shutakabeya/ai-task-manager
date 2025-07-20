@@ -4,10 +4,14 @@ import { useState } from 'react'
 import { useTaskStore } from '../types/taskStore'
 import { Task, SubTask } from '../types/task'
 
+type ViewMode = 'week' | 'month'
+
 export default function CalendarView() {
   const { tasks } = useTaskStore()
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useState<'week' | 'day'>('week')
+  const [viewMode, setViewMode] = useState<ViewMode>('week')
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [showDateModal, setShowDateModal] = useState(false)
 
   // 現在の週の日付を取得
   const getWeekDates = (date: Date) => {
@@ -21,6 +25,35 @@ export default function CalendarView() {
       weekDates.push(day)
     }
     return weekDates
+  }
+
+  // 月の日付を取得
+  const getMonthDates = (date: Date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    
+    // 月の最初の日
+    const firstDay = new Date(year, month, 1)
+    // 月の最後の日
+    const lastDay = new Date(year, month + 1, 0)
+    
+    // 週の開始日（日曜日）
+    const startDate = new Date(firstDay)
+    startDate.setDate(firstDay.getDate() - firstDay.getDay())
+    
+    // 週の終了日（土曜日）
+    const endDate = new Date(lastDay)
+    endDate.setDate(lastDay.getDate() + (6 - lastDay.getDay()))
+    
+    const dates = []
+    const current = new Date(startDate)
+    
+    while (current <= endDate) {
+      dates.push(new Date(current))
+      current.setDate(current.getDate() + 1)
+    }
+    
+    return dates
   }
 
   // 指定された日付のサブタスクを取得
@@ -45,8 +78,6 @@ export default function CalendarView() {
       return timeA - timeB
     })
   }
-
-  const weekDates = getWeekDates(currentDate)
 
   const getCategoryColor = (category: string, completed: boolean) => {
     if (completed) {
@@ -73,6 +104,90 @@ export default function CalendarView() {
     return estimatedTime
   }
 
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date)
+    setShowDateModal(true)
+  }
+
+  const closeDateModal = () => {
+    setShowDateModal(false)
+    setSelectedDate(null)
+  }
+
+  // 日付モーダルコンポーネント
+  const DateModal = () => {
+    if (!selectedDate || !showDateModal) return null
+
+    const subtasks = getSubtasksForDate(selectedDate)
+    const dateString = selectedDate.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    })
+
+    return (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4"
+        onClick={closeDateModal}
+      >
+        <div 
+          className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* ヘッダー */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">{dateString}</h3>
+            <button
+              onClick={closeDateModal}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* タスク一覧 */}
+          <div className="p-4">
+            {subtasks.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-400 mb-2">
+                  <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-500">この日のタスクはありません</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {subtasks.map(({ task, subtask }) => (
+                  <div
+                    key={subtask.id}
+                    className={`p-3 rounded-lg border border-gray-200 ${getCategoryColor(task.category, subtask.completed)} text-white transition-all ${
+                      subtask.completed ? 'opacity-75' : ''
+                    }`}
+                  >
+                    <div className={`font-medium ${subtask.completed ? 'line-through' : ''}`}>
+                      {subtask.title}
+                    </div>
+                    <div className="text-sm opacity-90 mt-1">
+                      {formatTime(subtask.datetime!)}
+                      {` (${getEstimatedTimeDisplay(subtask.estimatedTime)})`}
+                    </div>
+                    <div className="text-xs opacity-75 mt-1">
+                      {task.title} - {subtask.category || task.category}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (tasks.length === 0) {
     return (
       <div className="text-center py-8 sm:py-12">
@@ -83,6 +198,211 @@ export default function CalendarView() {
         </div>
         <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">スケジュールがありません</h3>
         <p className="text-sm sm:text-base text-gray-500">タスクを作成して日時を設定すると、ここに表示されます</p>
+      </div>
+    )
+  }
+
+  // 週表示コンポーネント
+  const WeekView = () => {
+    const weekDates = getWeekDates(currentDate)
+
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        {/* ナビゲーション */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => {
+              const newDate = new Date(currentDate)
+              newDate.setDate(currentDate.getDate() - 7)
+              setCurrentDate(newDate)
+            }}
+            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+          >
+            ← 前週
+          </button>
+          
+          <h3 className="text-base sm:text-lg font-medium text-gray-900">
+            {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
+          </h3>
+          
+          <button
+            onClick={() => {
+              const newDate = new Date(currentDate)
+              newDate.setDate(currentDate.getDate() + 7)
+              setCurrentDate(newDate)
+            }}
+            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+          >
+            次週 →
+          </button>
+        </div>
+
+        {/* カレンダーグリッド */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {/* 曜日ヘッダー */}
+          <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+            {['日', '月', '火', '水', '木', '金', '土'].map(day => (
+              <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-700">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* 日付グリッド */}
+          <div className="grid grid-cols-7">
+            {weekDates.map((date, index) => {
+              const isToday = date.toDateString() === new Date().toDateString()
+              const subtasks = getSubtasksForDate(date)
+              
+              return (
+                <div
+                  key={index}
+                  className={`min-h-24 sm:min-h-32 border-r border-gray-200 last:border-r-0 ${
+                    isToday ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  {/* 日付 */}
+                  <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
+                    isToday ? 'text-primary' : 'text-gray-900'
+                  }`}>
+                    {date.getDate()}
+                  </div>
+
+                  {/* サブタスク */}
+                  <div className="p-1 sm:p-2 space-y-1">
+                    {subtasks.map(({ task, subtask }) => (
+                      <div
+                        key={subtask.id}
+                        className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all ${
+                          subtask.completed ? 'opacity-75' : ''
+                        }`}
+                        title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
+                      >
+                        <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
+                          {subtask.title}
+                        </div>
+                        <div className="text-xs opacity-90">
+                          {formatTime(subtask.datetime!)}
+                          {` (${getEstimatedTimeDisplay(subtask.estimatedTime)})`}
+                        </div>
+                        {subtask.category && (
+                          <div className="text-xs opacity-75 mt-1">
+                            {subtask.category}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 月表示コンポーネント
+  const MonthView = () => {
+    const monthDates = getMonthDates(currentDate)
+    const weeks = []
+    
+    // 7日ずつに分割
+    for (let i = 0; i < monthDates.length; i += 7) {
+      weeks.push(monthDates.slice(i, i + 7))
+    }
+
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        {/* ナビゲーション */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => {
+              const newDate = new Date(currentDate)
+              newDate.setMonth(currentDate.getMonth() - 1)
+              setCurrentDate(newDate)
+            }}
+            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+          >
+            ← 前月
+          </button>
+          
+          <h3 className="text-base sm:text-lg font-medium text-gray-900">
+            {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
+          </h3>
+          
+          <button
+            onClick={() => {
+              const newDate = new Date(currentDate)
+              newDate.setMonth(currentDate.getMonth() + 1)
+              setCurrentDate(newDate)
+            }}
+            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+          >
+            次月 →
+          </button>
+        </div>
+
+        {/* カレンダーグリッド */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {/* 曜日ヘッダー */}
+          <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+            {['日', '月', '火', '水', '木', '金', '土'].map(day => (
+              <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-700">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* 週のグリッド */}
+          {weeks.map((week, weekIndex) => (
+            <div key={weekIndex} className="grid grid-cols-7 border-b border-gray-200 last:border-b-0">
+              {week.map((date, dayIndex) => {
+                const isToday = date.toDateString() === new Date().toDateString()
+                const isCurrentMonth = date.getMonth() === currentDate.getMonth()
+                const subtasks = getSubtasksForDate(date)
+                
+                return (
+                  <div
+                    key={dayIndex}
+                    className={`min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
+                      isToday ? 'bg-blue-50' : ''
+                    } ${!isCurrentMonth ? 'bg-gray-50' : ''}`}
+                    onClick={() => handleDateClick(date)}
+                  >
+                    {/* 日付 */}
+                    <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
+                      isToday ? 'text-primary' : isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                    }`}>
+                      {date.getDate()}
+                    </div>
+
+                    {/* サブタスク（最大3件まで表示） */}
+                    <div className="p-1 space-y-1">
+                      {subtasks.slice(0, 3).map(({ task, subtask }, index) => (
+                        <div
+                          key={subtask.id}
+                          className={`p-1 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all ${
+                            subtask.completed ? 'opacity-75' : ''
+                          }`}
+                        >
+                          <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
+                            {subtask.title}
+                          </div>
+                        </div>
+                      ))}
+                      {subtasks.length > 3 && (
+                        <div className="text-xs text-gray-500 text-center">
+                          +{subtasks.length - 3}件
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -105,108 +425,20 @@ export default function CalendarView() {
             週表示
           </button>
           <button
-            onClick={() => setViewMode('day')}
+            onClick={() => setViewMode('month')}
             className={`flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${
-              viewMode === 'day'
+              viewMode === 'month'
                 ? 'bg-white text-primary shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            日表示
+            月表示
           </button>
         </div>
       </div>
 
-      {/* ナビゲーション */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => {
-            const newDate = new Date(currentDate)
-            newDate.setDate(currentDate.getDate() - 7)
-            setCurrentDate(newDate)
-          }}
-          className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
-        >
-          ← 前週
-        </button>
-        
-        <h3 className="text-base sm:text-lg font-medium text-gray-900">
-          {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
-        </h3>
-        
-        <button
-          onClick={() => {
-            const newDate = new Date(currentDate)
-            newDate.setDate(currentDate.getDate() + 7)
-            setCurrentDate(newDate)
-          }}
-          className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
-        >
-          次週 →
-        </button>
-      </div>
-
-      {/* カレンダーグリッド */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {/* 曜日ヘッダー */}
-        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
-          {['日', '月', '火', '水', '木', '金', '土'].map(day => (
-            <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-700">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* 日付グリッド */}
-        <div className="grid grid-cols-7">
-          {weekDates.map((date, index) => {
-            const isToday = date.toDateString() === new Date().toDateString()
-            const subtasks = getSubtasksForDate(date)
-            
-            return (
-              <div
-                key={index}
-                className={`min-h-24 sm:min-h-32 border-r border-gray-200 last:border-r-0 ${
-                  isToday ? 'bg-blue-50' : ''
-                }`}
-              >
-                {/* 日付 */}
-                <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
-                  isToday ? 'text-primary' : 'text-gray-900'
-                }`}>
-                  {date.getDate()}
-                </div>
-
-                {/* サブタスク */}
-                <div className="p-1 sm:p-2 space-y-1">
-                  {subtasks.map(({ task, subtask }) => (
-                    <div
-                      key={subtask.id}
-                      className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all ${
-                        subtask.completed ? 'opacity-75' : ''
-                      }`}
-                      title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
-                    >
-                      <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
-                        {subtask.title}
-                      </div>
-                      <div className="text-xs opacity-90">
-                        {formatTime(subtask.datetime!)}
-                        {` (${getEstimatedTimeDisplay(subtask.estimatedTime)})`}
-                      </div>
-                      {subtask.category && (
-                        <div className="text-xs opacity-75 mt-1">
-                          {subtask.category}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      {/* ビューコンテンツ */}
+      {viewMode === 'week' ? <WeekView /> : <MonthView />}
 
       {/* 凡例 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
@@ -230,6 +462,9 @@ export default function CalendarView() {
           </div>
         </div>
       </div>
+
+      {/* 日付モーダル */}
+      <DateModal />
     </div>
   )
 } 
