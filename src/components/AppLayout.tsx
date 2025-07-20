@@ -51,29 +51,31 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 sm:py-0 sm:h-16 space-y-3 sm:space-y-0">
+            {/* タイトル */}
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center sm:text-left">
               AI Task Manager
             </h1>
             
-            <div className="flex items-center space-x-4">
+            {/* コントロールエリア */}
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
               {/* 開発用：テスト通知ボタン */}
               {process.env.NODE_ENV === 'development' && (
                 <button
                   onClick={showTestNotification}
-                  className="px-3 py-1 bg-yellow-500 text-white rounded-md text-sm font-medium hover:bg-yellow-600 transition-colors"
+                  className="px-2 py-1 bg-yellow-500 text-white rounded-md text-xs sm:text-sm font-medium hover:bg-yellow-600 transition-colors"
                   title="テスト通知を表示"
                 >
-                  🔔 テスト通知
+                  🔔 テスト
                 </button>
               )}
               
-              {/* ビュートグルボタン */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              {/* ビュートグルボタン - スマートフォンで1行に収める */}
+              <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
                 <button
                   onClick={() => setCurrentView('list')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                     currentView === 'list'
                       ? 'bg-white text-primary shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -83,7 +85,7 @@ export default function AppLayout() {
                 </button>
                 <button
                   onClick={() => setCurrentView('calendar')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                     currentView === 'calendar'
                       ? 'bg-white text-primary shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -98,16 +100,16 @@ export default function AppLayout() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {currentView === 'list' ? <TaskListView /> : <CalendarView />}
       </main>
 
       {/* Floating Action Buttons */}
-      <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
+      <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 flex flex-col space-y-3">
         {/* タスク追加ボタン */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110"
+          className="w-12 h-12 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center text-xl sm:text-2xl transition-all duration-200 hover:scale-110"
           aria-label="タスクを追加"
         >
           +

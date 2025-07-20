@@ -133,25 +133,25 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">新しいタスク</h2>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">新しいタスク</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* フォーム */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {/* カテゴリ */}
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
@@ -198,81 +198,74 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
               onChange={(e) => handleInputChange('naturalText', e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-              placeholder="やりたいことを自然に書いてください（AIがサブタスクを自動生成します）"
+              placeholder="例：「明日の会議の準備をする」→ AIが自動的にサブタスクに分解します"
             />
-            <div className="mt-2 flex items-center space-x-2">
-              <button
-                type="button"
-                onClick={handleGptDecompose}
-                disabled={isLoading || !formData.naturalText.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? '処理中...' : 'GPTで分解'}
-              </button>
-              <p className="text-xs text-gray-500">
-                AIが自然文からサブタスクを自動生成します
-              </p>
-            </div>
-            {error && (
-              <p className="mt-1 text-sm text-red-600">{error}</p>
-            )}
+            <button
+              type="button"
+              onClick={handleGptDecompose}
+              disabled={isLoading || !formData.naturalText.trim()}
+              className="mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+            >
+              {isLoading ? '処理中...' : 'GPTで分解'}
+            </button>
           </div>
+
+          {/* エラーメッセージ */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
 
           {/* サブタスク一覧 */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-medium text-gray-700">
-                サブタスク
-              </label>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">サブタスク</h3>
               <button
                 type="button"
                 onClick={handleSubtaskAdd}
-                className="px-3 py-1 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
               >
-                + 手動追加
+                + 追加
               </button>
             </div>
-            
-            {subtasks.length === 0 && (
-              <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                <div className="text-gray-400 mb-2">
-                  <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <p className="text-sm text-gray-500 mb-3">サブタスクがありません</p>
-                <div className="space-x-2">
-                  <button
-                    type="button"
-                    onClick={handleSubtaskAdd}
-                    className="px-3 py-1 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
-                  >
-                    手動で追加
-                  </button>
-                  <span className="text-xs text-gray-400">または</span>
-                  <span className="text-xs text-gray-400">上記でAI分解を使用</span>
-                </div>
-              </div>
-            )}
-            
-            {subtasks.length > 0 && (
-              <div className="space-y-3">
-                {subtasks.map((subtask, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 items-center p-3 border border-gray-200 rounded-lg">
+
+            <div className="space-y-3">
+              {subtasks.map((subtask, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3 sm:p-4 bg-gray-50">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm sm:text-base font-medium text-gray-900">サブタスク {index + 1}</h4>
+                    <button
+                      type="button"
+                      onClick={() => handleSubtaskDelete(index)}
+                      className="text-red-500 hover:text-red-700 transition-colors p-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* タイトル */}
-                    <div className="col-span-3">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        タイトル
+                      </label>
                       <input
                         type="text"
-                        value={subtask.title}
+                        value={subtask.title || ''}
                         onChange={(e) => handleSubtaskChange(index, 'title', e.target.value)}
                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                        placeholder="タイトル"
-                        required
+                        placeholder="サブタスクのタイトル"
                       />
                     </div>
-                    
+
                     {/* 日時 */}
-                    <div className="col-span-3">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        日時
+                      </label>
                       <DatePicker
                         selected={subtask.datetime ? new Date(subtask.datetime) : null}
                         onChange={(date) => handleSubtaskChange(index, 'datetime', date ? date.toISOString() : undefined)}
@@ -284,20 +277,26 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
-                    
-                    {/* 所要時間 */}
-                    <div className="col-span-2">
+
+                    {/* 予想時間 */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        予想時間
+                      </label>
                       <input
                         type="text"
-                        value={subtask.estimatedTime}
+                        value={subtask.estimatedTime || ''}
                         onChange={(e) => handleSubtaskChange(index, 'estimatedTime', e.target.value)}
                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                        placeholder="1.5h"
+                        placeholder="例: 1.5h"
                       />
                     </div>
-                    
+
                     {/* カテゴリ */}
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        カテゴリ
+                      </label>
                       <input
                         type="text"
                         value={subtask.category || ''}
@@ -306,39 +305,26 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                         placeholder="カテゴリ"
                       />
                     </div>
-                    
-                    {/* 削除ボタン */}
-                    <div className="col-span-2 flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() => handleSubtaskDelete(index)}
-                        className="px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* ボタン */}
-          <div className="flex space-x-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-medium"
+            >
+              タスクを作成
+            </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium"
             >
               キャンセル
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              保存
             </button>
           </div>
         </form>
