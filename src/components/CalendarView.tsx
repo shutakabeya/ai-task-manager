@@ -62,6 +62,28 @@ export default function CalendarView() {
     const result: { task: Task; subtask: SubTask }[] = []
     
     tasks.forEach(task => {
+      // メインタスクの日時をチェック
+      if (task.datetime) {
+        const taskDate = new Date(task.datetime).toISOString().split('T')[0]
+        if (taskDate === dateString) {
+          // メインタスクに日時がある場合、サブタスクがない場合はダミーのサブタスクを作成
+          if (task.subtasks.length === 0) {
+            result.push({
+              task,
+              subtask: {
+                id: task.id,
+                title: task.title,
+                datetime: task.datetime,
+                estimatedTime: task.estimatedTime,
+                category: task.category,
+                completed: false
+              }
+            })
+          }
+        }
+      }
+      
+      // サブタスクの日時をチェック
       task.subtasks.forEach(subtask => {
         if (subtask.datetime) {
           const subtaskDate = new Date(subtask.datetime).toISOString().split('T')[0]

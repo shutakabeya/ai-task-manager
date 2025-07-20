@@ -17,6 +17,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     title: '',
     category: '',
     naturalText: '',
+    datetime: '',
     estimatedTime: '',
   })
   const [subtasks, setSubtasks] = useState<SubTask[]>([])
@@ -48,6 +49,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       id: `task-${Date.now()}`,
       title: formData.title,
       category: formData.category,
+      datetime: formData.datetime || undefined,
       estimatedTime: formData.estimatedTime || undefined,
       subtasks: subtasksWithIds
     }
@@ -55,7 +57,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     addTask(newTask)
     
     // フォームをリセット
-    setFormData({ title: '', category: '', naturalText: '', estimatedTime: '' })
+    setFormData({ title: '', category: '', naturalText: '', datetime: '', estimatedTime: '' })
     setSubtasks([])
     setError('')
     onClose()
@@ -244,7 +246,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                           {/* 日時 */}
                           <div>
                             <label htmlFor="datetime" className="block text-sm font-medium text-gray-700 mb-1">
-                              日時
+                              日時（後で入力可能）
                             </label>
                             <DatePicker
                               selected={formData.datetime ? new Date(formData.datetime) : null}
@@ -254,7 +256,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                               timeIntervals={15}
                               dateFormat="yyyy/MM/dd HH:mm"
                               className="input-base w-full px-3 py-2 text-sm"
-                              placeholderText="日時を選択"
+                              placeholderText="日時を選択（後で設定可能）"
                               isClearable
                             />
                           </div>
@@ -366,7 +368,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                 timeIntervals={15}
                                 dateFormat="yyyy/MM/dd HH:mm"
                                 className="input-base w-full px-2 py-1 text-sm"
-                                placeholderText="日時を選択"
+                                placeholderText="日時を選択（後で設定可能）"
                                 isClearable
                               />
                             </div>
