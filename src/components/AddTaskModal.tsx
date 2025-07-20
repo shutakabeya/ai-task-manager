@@ -405,18 +405,18 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                         {/* アクションボタン */}
                         <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                           <button
-                            type="submit"
-                            disabled={!formData.title.trim() || isLoading}
-                            className="btn-primary w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            タスクを作成
-                          </button>
-                          <button
                             type="button"
                             onClick={onClose}
                             className="btn-secondary w-full sm:w-auto"
                           >
                             キャンセル
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={!formData.title.trim() || isLoading}
+                            className="btn-primary w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            タスクを作成
                           </button>
                         </div>
                       </form>
