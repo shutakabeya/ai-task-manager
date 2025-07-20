@@ -204,13 +204,13 @@ export default function CalendarView() {
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-8 sm:py-12">
+      <div className="text-center py-8 sm:py-12 animate-fadeIn">
         <div className="text-gray-400 mb-4">
           <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">スケジュールがありません</h3>
+        <h3 className="text-base sm:text-lg font-medium text-text mb-2">スケジュールがありません</h3>
         <p className="text-sm sm:text-base text-gray-500">タスクを作成して日時を設定すると、ここに表示されます</p>
       </div>
     )
@@ -221,7 +221,7 @@ export default function CalendarView() {
     const weekDates = getWeekDates(currentDate)
 
     return (
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 animate-fadeIn">
         {/* ナビゲーション */}
         <div className="flex items-center justify-between">
           <button
@@ -230,12 +230,12 @@ export default function CalendarView() {
               newDate.setDate(currentDate.getDate() - 7)
               setCurrentDate(newDate)
             }}
-            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
           >
             ← 前週
           </button>
           
-          <h3 className="text-base sm:text-lg font-medium text-gray-900">
+          <h3 className="text-base sm:text-lg font-medium text-text">
             {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
           </h3>
           
@@ -245,14 +245,14 @@ export default function CalendarView() {
               newDate.setDate(currentDate.getDate() + 7)
               setCurrentDate(newDate)
             }}
-            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
           >
             次週 →
           </button>
         </div>
 
         {/* カレンダーグリッド */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="card-white overflow-hidden">
           {/* 曜日ヘッダー */}
           <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
             {['日', '月', '火', '水', '木', '金', '土'].map(day => (
@@ -277,7 +277,7 @@ export default function CalendarView() {
                 >
                   {/* 日付 */}
                   <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
-                    isToday ? 'text-primary' : 'text-gray-900'
+                    isToday ? 'text-primary' : 'text-text'
                   }`}>
                     {date.getDate()}
                   </div>
@@ -287,7 +287,7 @@ export default function CalendarView() {
                     {subtasks.map(({ task, subtask }) => (
                       <div
                         key={subtask.id}
-                        className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all ${
+                        className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
                           subtask.completed ? 'opacity-75' : ''
                         }`}
                         title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
@@ -327,7 +327,7 @@ export default function CalendarView() {
     }
 
     return (
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 animate-fadeIn">
         {/* ナビゲーション */}
         <div className="flex items-center justify-between">
           <button
@@ -336,12 +336,12 @@ export default function CalendarView() {
               newDate.setMonth(currentDate.getMonth() - 1)
               setCurrentDate(newDate)
             }}
-            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
           >
             ← 前月
           </button>
           
-          <h3 className="text-base sm:text-lg font-medium text-gray-900">
+          <h3 className="text-base sm:text-lg font-medium text-text">
             {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
           </h3>
           
@@ -351,14 +351,14 @@ export default function CalendarView() {
               newDate.setMonth(currentDate.getMonth() + 1)
               setCurrentDate(newDate)
             }}
-            className="p-1 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base"
+            className="btn-secondary p-1 sm:p-2 text-sm sm:text-base"
           >
             次月 →
           </button>
         </div>
 
         {/* カレンダーグリッド */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="card-white overflow-hidden">
           {/* 曜日ヘッダー */}
           <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
             {['日', '月', '火', '水', '木', '金', '土'].map(day => (
@@ -379,14 +379,14 @@ export default function CalendarView() {
                 return (
                   <div
                     key={dayIndex}
-                    className={`min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    className={`calendar-cell min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
                       isToday ? 'bg-blue-50' : ''
                     } ${!isCurrentMonth ? 'bg-gray-50' : ''}`}
                     onClick={() => handleDateClick(date)}
                   >
                     {/* 日付 */}
                     <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
-                      isToday ? 'text-primary' : isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                      isToday ? 'text-primary' : isCurrentMonth ? 'text-text' : 'text-gray-400'
                     }`}>
                       {date.getDate()}
                     </div>
@@ -396,7 +396,7 @@ export default function CalendarView() {
                       {subtasks.slice(0, 3).map(({ task, subtask }, index) => (
                         <div
                           key={subtask.id}
-                          className={`p-1 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all ${
+                          className={`p-1 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
                             subtask.completed ? 'opacity-75' : ''
                           }`}
                         >
@@ -422,28 +422,28 @@ export default function CalendarView() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">カレンダー</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-text">カレンダー</h2>
         
         {/* ビューモード切り替え */}
-        <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
+        <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto shadow-sm">
           <button
             onClick={() => setViewMode('week')}
-            className={`flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-all duration-150 ease-out ${
               viewMode === 'week'
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-primary shadow-soft scale-[1.02]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             週表示
           </button>
           <button
             onClick={() => setViewMode('month')}
-            className={`flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-none px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-all duration-150 ease-out ${
               viewMode === 'month'
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-primary shadow-soft scale-[1.02]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             月表示
@@ -455,8 +455,8 @@ export default function CalendarView() {
       {viewMode === 'week' ? <WeekView /> : <MonthView />}
 
       {/* 凡例 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
-        <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-2 sm:mb-3">凡例</h4>
+      <div className="card-white p-3 sm:p-4">
+        <h4 className="text-sm sm:text-base font-medium text-text mb-2 sm:mb-3">凡例</h4>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {/* 実際に使用されているカテゴリを表示 */}
           {(() => {

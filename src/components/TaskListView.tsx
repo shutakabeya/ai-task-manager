@@ -169,13 +169,13 @@ export default function TaskListView() {
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-8 sm:py-12">
+      <div className="text-center py-8 sm:py-12 animate-fadeIn">
         <div className="text-gray-400 mb-4">
           <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">タスクがありません</h3>
+        <h3 className="text-base sm:text-lg font-medium text-text mb-2">タスクがありません</h3>
         <p className="text-sm sm:text-base text-gray-500">新しいタスクを作成して始めましょう</p>
       </div>
     )
@@ -187,13 +187,13 @@ export default function TaskListView() {
     const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fadeIn">
         {sectionOrder.map(section => {
           const items = groups[section]
           if (items.length === 0) return null
 
           return (
-            <div key={section} className="space-y-2">
+            <div key={section} className="space-y-2 animate-slideIn">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                 {section === 'Today' && '今日'}
                 {section === 'Tomorrow' && '明日'}
@@ -202,12 +202,13 @@ export default function TaskListView() {
                 {section === 'No Date' && '日付なし'}
               </h3>
               <div className="space-y-1">
-                {items.map(item => (
+                {items.map((item, index) => (
                   <div
                     key={item.id}
-                    className={`flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 transition-all ${
+                    className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 ${
                       item.completed ? 'opacity-75' : ''
                     }`}
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {/* チェックボックス */}
                     <button
@@ -222,7 +223,7 @@ export default function TaskListView() {
                           }
                         }
                       }}
-                      className={`flex-shrink-0 w-5 h-5 rounded border-2 transition-colors ${
+                      className={`checkbox-base flex-shrink-0 w-5 h-5 rounded border-2 ${
                         item.completed
                           ? 'bg-success border-success'
                           : 'border-gray-300 hover:border-primary'
@@ -239,7 +240,7 @@ export default function TaskListView() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <p className={`text-sm font-medium ${
-                          item.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                          item.completed ? 'text-gray-500 line-through' : 'text-text'
                         }`}>
                           {item.title}
                         </p>
@@ -276,15 +277,16 @@ export default function TaskListView() {
 
   // プロジェクト別ビュー（既存のビュー）
   const ProjectView = () => (
-    <div className="space-y-3 sm:space-y-4">
-      {tasks.map(task => (
+    <div className="space-y-3 sm:space-y-4 animate-fadeIn">
+      {tasks.map((task, taskIndex) => (
         <div
           key={task.id}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+          className="card-white overflow-hidden"
+          style={{ animationDelay: `${taskIndex * 100}ms` }}
         >
           {/* タスクヘッダー */}
           <div
-            className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
             onClick={() => toggleTaskExpansion(task.id)}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
@@ -294,7 +296,7 @@ export default function TaskListView() {
                     {task.category}
                   </div>
                 </div>
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">{task.title}</h3>
+                <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
               </div>
               
               <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">
@@ -313,7 +315,7 @@ export default function TaskListView() {
                 
                 {/* 展開アイコン */}
                 <svg
-                  className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform flex-shrink-0 ${
+                  className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-all duration-150 ease-out flex-shrink-0 ${
                     expandedTasks.has(task.id) ? 'rotate-180' : ''
                   }`}
                   fill="none"
@@ -333,14 +335,15 @@ export default function TaskListView() {
 
           {/* サブタスク一覧 */}
           {expandedTasks.has(task.id) && (
-            <div className="border-t border-gray-200 bg-gray-50">
+            <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
               <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-                {getSortedSubtasks(task).map(subtask => (
+                {getSortedSubtasks(task).map((subtask, subtaskIndex) => (
                   <div
                     key={subtask.id}
-                    className={`flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 transition-all ${
+                    className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 ${
                       subtask.completed ? 'opacity-75' : ''
                     }`}
+                    style={{ animationDelay: `${subtaskIndex * 50}ms` }}
                   >
                     {/* チェックボックス */}
                     <button
@@ -348,7 +351,7 @@ export default function TaskListView() {
                         e.stopPropagation()
                         toggleSubtask(task.id, subtask.id)
                       }}
-                      className={`flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 transition-colors mt-0.5 ${
+                      className={`checkbox-base flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mt-0.5 ${
                         subtask.completed
                           ? 'bg-success border-success'
                           : 'border-gray-300 hover:border-primary'
@@ -364,7 +367,7 @@ export default function TaskListView() {
                     {/* サブタスク情報 */}
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-medium ${
-                        subtask.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                        subtask.completed ? 'text-gray-500 line-through' : 'text-text'
                       }`}>
                         {subtask.title}
                       </p>
@@ -407,28 +410,28 @@ export default function TaskListView() {
   )
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">タスク一覧</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-text">タスク一覧</h2>
         
         {/* ビューモード切り替え */}
-        <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
+        <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto shadow-sm">
           <button
             onClick={() => setViewMode('date')}
-            className={`flex-1 sm:flex-none px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-none px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-150 ease-out ${
               viewMode === 'date'
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-primary shadow-soft scale-[1.02]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             📅 日付順
           </button>
           <button
             onClick={() => setViewMode('project')}
-            className={`flex-1 sm:flex-none px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-none px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-150 ease-out ${
               viewMode === 'project'
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-primary shadow-soft scale-[1.02]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             📁 プロジェクト別

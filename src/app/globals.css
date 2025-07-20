@@ -5,29 +5,156 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 249, 250, 251;
-  --background-end-rgb: 249, 250, 251;
+  --primary: #3CB371;
+  --primary-dark: #2E8B57;
+  --accent: #38BDF8;
+  --background: #F8FAFC;
+  --text: #1E293B;
+  --success: #10B981;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-  font-family: 'Inter', sans-serif;
+/* カスタムアニメーション */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* カスタムスクロールバー */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* アニメーションクラス */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* カスタムコンポーネント */
+@layer components {
+  /* ボタンベース */
+  .btn-base {
+    @apply transition-all duration-150 ease-out;
+  }
+  
+  .btn-primary {
+    @apply btn-base bg-primary hover:bg-primary-dark text-white font-medium rounded-md shadow-sm hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply btn-base bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md shadow-sm hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2;
+  }
+  
+  .btn-danger {
+    @apply btn-base bg-red-600 hover:bg-red-700 text-white font-medium rounded-md shadow-sm hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+  }
+  
+  /* カードベース */
+  .card-base {
+    @apply transition-all duration-150 ease-out hover:shadow-md hover:scale-[1.01];
+  }
+  
+  .card-white {
+    @apply card-base bg-white rounded-lg shadow-sm border border-gray-200;
+  }
+  
+  /* 入力フィールド */
+  .input-base {
+    @apply transition-all duration-150 ease-out border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary;
+  }
+  
+  /* カレンダーセル */
+  .calendar-cell {
+    @apply transition-all duration-150 ease-out hover:bg-slate-100 cursor-pointer;
+  }
+  
+  /* タスクアイテム */
+  .task-item {
+    @apply transition-all duration-150 ease-out hover:shadow-md hover:scale-[1.01] hover:bg-gray-50;
+  }
+  
+  /* モーダル */
+  .modal-base {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  /* ナビゲーション */
+  .nav-item {
+    @apply transition-all duration-150 ease-out hover:bg-gray-100 rounded-md;
+  }
+  
+  /* チェックボックス */
+  .checkbox-base {
+    @apply transition-all duration-150 ease-out hover:scale-110;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0F172A;
+    --text: #F1F5F9;
+  }
+  
+  .dark\:bg-slate-900 {
+    background-color: var(--background);
+  }
+  
+  .dark\:text-slate-100 {
+    color: var(--text);
+  }
+  
+  .dark\:border-slate-700 {
+    border-color: #334155;
+  }
+  
+  .dark\:bg-slate-800 {
+    background-color: #1E293B;
+  }
+  
+  .dark\:hover\:bg-slate-700:hover {
+    background-color: #334155;
+  }
+}
+
+/* スクロールバーのカスタマイズ */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -37,4 +164,14 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* フォーカス時のアウトライン */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 } 
