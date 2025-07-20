@@ -43,7 +43,7 @@ export const DraggableTaskItem: React.FC<DraggableTaskItemProps> = ({
     }
     
     // ドラッグリスナーを適用
-    if (listeners.onMouseDown) {
+    if (listeners && listeners.onMouseDown) {
       listeners.onMouseDown(e)
     }
   }
@@ -56,7 +56,7 @@ export const DraggableTaskItem: React.FC<DraggableTaskItemProps> = ({
     }
     
     // ドラッグリスナーを適用
-    if (listeners.onTouchStart) {
+    if (listeners && listeners.onTouchStart) {
       listeners.onTouchStart(e)
     }
   }
