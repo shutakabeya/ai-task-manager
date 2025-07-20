@@ -57,8 +57,10 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       id: `task-${Date.now()}`,
       title: formData.title,
       category: formData.category || '未分類',
+      date: formData.datetime ? new Date(formData.datetime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       datetime: formData.datetime || undefined,
       estimatedTime: formData.estimatedTime || undefined,
+      originalText: formData.naturalText || formData.title,
       subtasks: subtasksWithIds
     }
 
