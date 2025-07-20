@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
+
 import { useTaskStore } from '../types/taskStore'
 import { Task } from '../types/task'
-import { useDragAndDrop } from '../hooks/useDragAndDrop'
-import { DraggableTaskItem } from './DraggableTaskItem'
-import { DroppableDateCell } from './DroppableDateCell'
+
+
+import { DragHandle } from './DragHandle'
+import TaskDetailModal from './TaskDetailModal'
 
 type ViewMode = 'date' | 'project'
 
@@ -14,7 +15,9 @@ export default function TaskListView() {
   const { tasks, toggleSubtask } = useTaskStore()
   const [viewMode, setViewMode] = useState<ViewMode>('date')
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
-  const { draggedItem, handleDragStart, handleDragEnd } = useDragAndDrop()
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks)
@@ -24,6 +27,16 @@ export default function TaskListView() {
       newExpanded.add(taskId)
     }
     setExpandedTasks(newExpanded)
+  }
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task)
+    setIsDetailModalOpen(true)
+  }
+
+  const handleEditTask = (task: Task) => {
+    // TODO: 編集機能を実装
+    console.log('Edit task:', task)
   }
 
   const getCategoryColor = (category: string) => {
@@ -193,11 +206,6 @@ export default function TaskListView() {
     const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
 
     return (
-      <DndContext 
-        onDragStart={handleDragStart} 
-        onDragEnd={handleDragEnd}
-        modifiers={[]}
-      >
         <div className="space-y-6 animate-fadeIn">
           {sectionOrder.map(section => {
             const items = groups[section]
@@ -214,23 +222,47 @@ export default function TaskListView() {
                 </h3>
                 <div className="space-y-1">
                   {items.map((item, index) => (
-                    <DraggableTaskItem
+                    <div
                       key={item.id}
-                      id={item.id}
-                      type={item.isSubtask ? 'subtask' : 'task'}
-                      taskId={item.isSubtask ? (tasks.find(task => 
-                        task.subtasks.some(sub => sub.id === item.id)
-                      )?.id || '') : item.id}
-                      subtaskId={item.isSubtask ? item.id : undefined}
-                      isDragging={draggedItem?.taskId === (item.isSubtask ? (tasks.find(task => 
-                        task.subtasks.some(sub => sub.id === item.id)
-                      )?.id || '') : item.id)}
+                      className="transition-all duration-200"
                     >
                       <div
-                        className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-grab active:cursor-grabbing ${
+                        className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-soft transition-all duration-150 ${
                           item.completed ? 'opacity-75' : ''
                         }`}
                         style={{ animationDelay: `${index * 50}ms` }}
+                        data-clickable="true"
+                        onMouseDown={(e) => {
+                          // ドラッグハンドル以外のクリックを防ぐ
+                          const target = e.target as HTMLElement
+                          if (!target.closest('[data-drag-handle="true"]')) {
+                            e.stopPropagation()
+                          }
+                        }}
+                        onTouchStart={(e) => {
+                          // タッチデバイスでのドラッグハンドル以外のタッチを防ぐ
+                          const target = e.target as HTMLElement
+                          if (!target.closest('[data-drag-handle="true"]')) {
+                            e.stopPropagation()
+                          }
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          
+                          // ドラッグハンドルがクリックされた場合は何もしない
+                          const target = e.target as HTMLElement
+                          if (target.closest('[data-drag-handle="true"]')) {
+                            return
+                          }
+                          
+                          if (!item.isSubtask) {
+                            const task = tasks.find(t => t.id === item.id)
+                            if (task) {
+                              handleTaskClick(task)
+                            }
+                          }
+                        }}
                       >
                         {/* チェックボックス */}
                         <button
@@ -288,33 +320,26 @@ export default function TaskListView() {
                             </span>
                           </div>
                         </div>
+
+
                       </div>
-                    </DraggableTaskItem>
+                    </div>
                   ))}
                 </div>
               </div>
             )
           })}
         </div>
-      </DndContext>
     )
   }
 
   // プロジェクト別ビュー（既存のビュー）
   const ProjectView = () => (
-    <DndContext 
-      onDragStart={handleDragStart} 
-      onDragEnd={handleDragEnd}
-      modifiers={[]}
-    >
       <div className="space-y-3 sm:space-y-4 animate-fadeIn">
         {tasks.map((task, taskIndex) => (
-          <DraggableTaskItem
+          <div
             key={task.id}
-            id={task.id}
-            type="task"
-            taskId={task.id}
-            isDragging={draggedItem?.taskId === task.id}
+            className="transition-all duration-200"
           >
             <div
               className="card-white overflow-hidden cursor-grab active:cursor-grabbing"
@@ -323,9 +348,32 @@ export default function TaskListView() {
               {/* タスクヘッダー */}
               <div
                 className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
+                data-clickable="true"
+                onMouseDown={(e) => {
+                  // ドラッグハンドル以外のクリックを防ぐ
+                  const target = e.target as HTMLElement
+                  if (!target.closest('[data-drag-handle="true"]')) {
+                    e.stopPropagation()
+                  }
+                }}
+                onTouchStart={(e) => {
+                  // タッチデバイスでのドラッグハンドル以外のタッチを防ぐ
+                  const target = e.target as HTMLElement
+                  if (!target.closest('[data-drag-handle="true"]')) {
+                    e.stopPropagation()
+                  }
+                }}
                 onClick={(e) => {
+                  e.preventDefault()
                   e.stopPropagation()
-                  toggleTaskExpansion(task.id)
+                  
+                  // ドラッグハンドルがクリックされた場合は何もしない
+                  const target = e.target as HTMLElement
+                  if (target.closest('[data-drag-handle="true"]')) {
+                    return
+                  }
+                  
+                  handleTaskClick(task)
                 }}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
@@ -372,22 +420,33 @@ export default function TaskListView() {
                       </span>
                     </div>
                     
+
+                    
                     {/* 展開アイコン */}
-                    <svg
-                      className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-all duration-150 ease-out flex-shrink-0 ${
-                        expandedTasks.has(task.id) ? 'rotate-180' : ''
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        toggleTaskExpansion(task.id)
+                      }}
+                      className="p-1 hover:bg-gray-200 rounded transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <svg
+                        className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-all duration-150 ease-out flex-shrink-0 ${
+                          expandedTasks.has(task.id) ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -397,16 +456,12 @@ export default function TaskListView() {
                 <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
                   <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
                     {getSortedSubtasks(task).map((subtask, subtaskIndex) => (
-                      <DraggableTaskItem
+                      <div
                         key={subtask.id}
-                        id={subtask.id}
-                        type="subtask"
-                        taskId={task.id}
-                        subtaskId={subtask.id}
-                        isDragging={draggedItem?.subtaskId === subtask.id}
+                        className="transition-all duration-200"
                       >
                         <div
-                          className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 cursor-grab active:cursor-grabbing ${
+                          className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 ${
                             subtask.completed ? 'opacity-75' : ''
                           }`}
                           style={{ animationDelay: `${subtaskIndex * 50}ms` }}
@@ -465,18 +520,19 @@ export default function TaskListView() {
                               )}
                             </div>
                           </div>
+
+
                         </div>
-                      </DraggableTaskItem>
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-          </DraggableTaskItem>
+          </div>
         ))}
-      </div>
-    </DndContext>
-  )
+              </div>
+    )
 
   return (
     <div className="space-y-4 animate-fadeIn">
@@ -510,6 +566,17 @@ export default function TaskListView() {
 
       {/* ビューコンテンツ */}
       {viewMode === 'date' ? <DateView /> : <ProjectView />}
+
+      {/* タスク詳細モーダル */}
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false)
+          setSelectedTask(null)
+        }}
+        onEdit={handleEditTask}
+      />
     </div>
   )
 } 

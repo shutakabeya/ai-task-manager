@@ -6,6 +6,7 @@ export const storageUtils = {
   // タスクを保存
   saveTasks: (tasks: Task[]): void => {
     try {
+      if (typeof window === 'undefined') return
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
       console.log('Tasks saved to localStorage:', tasks.length, 'tasks')
     } catch (error) {
@@ -16,6 +17,7 @@ export const storageUtils = {
   // タスクを読み込み
   loadTasks: (): Task[] => {
     try {
+      if (typeof window === 'undefined') return []
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         const tasks = JSON.parse(stored)
@@ -31,6 +33,7 @@ export const storageUtils = {
   // タスクを削除
   clearTasks: (): void => {
     try {
+      if (typeof window === 'undefined') return
       localStorage.removeItem(STORAGE_KEY)
       console.log('Tasks cleared from localStorage')
     } catch (error) {
@@ -41,6 +44,9 @@ export const storageUtils = {
   // ストレージの使用量を確認
   getStorageUsage: (): { used: number; total: number } => {
     try {
+      if (typeof window === 'undefined') {
+        return { used: 0, total: 0 }
+      }
       const stored = localStorage.getItem(STORAGE_KEY)
       const used = stored ? new Blob([stored]).size : 0
       const total = 5 * 1024 * 1024 // 5MB (localStorageの一般的な制限)
@@ -54,6 +60,7 @@ export const storageUtils = {
   // ストレージが利用可能かチェック
   isStorageAvailable: (): boolean => {
     try {
+      if (typeof window === 'undefined') return false
       const test = '__storage_test__'
       localStorage.setItem(test, test)
       localStorage.removeItem(test)

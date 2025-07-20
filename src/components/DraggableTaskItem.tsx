@@ -9,6 +9,8 @@ interface DraggableTaskItemProps {
   subtaskId?: string
   children: React.ReactNode
   isDragging?: boolean
+  showDragHandle?: boolean
+  onRenderDragHandle?: (listeners: any, attributes: any) => React.ReactNode
 }
 
 export const DraggableTaskItem: React.FC<DraggableTaskItemProps> = ({
@@ -17,7 +19,9 @@ export const DraggableTaskItem: React.FC<DraggableTaskItemProps> = ({
   taskId,
   subtaskId,
   children,
-  isDragging = false
+  isDragging = false,
+  showDragHandle = false,
+  onRenderDragHandle
 }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id,
@@ -35,44 +39,22 @@ export const DraggableTaskItem: React.FC<DraggableTaskItemProps> = ({
     position: isDragging ? 'relative' as const : 'static' as const,
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // チェックボックスやボタンなどのインタラクティブな要素の場合はドラッグを無効化
-    const target = e.target as HTMLElement
-    if (target.closest('button, input, select, textarea, a')) {
-      return
-    }
-    
-    // ドラッグリスナーを適用
-    if (listeners && listeners.onMouseDown) {
-      listeners.onMouseDown(e)
-    }
-  }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // チェックボックスやボタンなどのインタラクティブな要素の場合はドラッグを無効化
-    const target = e.target as HTMLElement
-    if (target.closest('button, input, select, textarea, a')) {
-      return
-    }
-    
-    // ドラッグリスナーを適用
-    if (listeners && listeners.onTouchStart) {
-      listeners.onTouchStart(e)
-    }
-  }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
-      className={`transition-all duration-200 cursor-grab active:cursor-grabbing ${
+      className={`relative transition-all duration-200 ${
         isDragging ? 'scale-105 shadow-lg' : 'hover:scale-[1.02]'
       }`}
     >
       {children}
+      {showDragHandle && onRenderDragHandle && (
+        <div className="absolute top-1 right-1 z-10">
+          {onRenderDragHandle(listeners, attributes)}
+        </div>
+      )}
     </div>
   )
 } 

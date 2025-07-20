@@ -7,6 +7,7 @@ import { Task, SubTask } from '../types/task'
 import { useDragAndDrop } from '../hooks/useDragAndDrop'
 import { DraggableTaskItem } from './DraggableTaskItem'
 import { DroppableDateCell } from './DroppableDateCell'
+import { DragHandle } from './DragHandle'
 
 type ViewMode = 'week' | 'month'
 
@@ -328,25 +329,33 @@ export default function CalendarView() {
                             taskId={task.id}
                             subtaskId={subtask.id}
                             isDragging={draggedItem?.subtaskId === subtask.id}
+                            showDragHandle={true}
+                            onRenderDragHandle={(listeners, attributes) => (
+                              <DragHandle listeners={listeners} attributes={attributes} className="text-white opacity-75" />
+                            )}
                           >
                             <div
-                              className={`p-1 sm:p-2 rounded text-xs text-white cursor-grab active:cursor-grabbing ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
+                              className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
                                 subtask.completed ? 'opacity-75' : ''
                               }`}
                               title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
                             >
-                              <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
-                                {subtask.title}
-                              </div>
-                              <div className="text-xs opacity-90">
-                                {formatTime(subtask.datetime!)}
-                                {subtask.estimatedTime && ` (${subtask.estimatedTime})`}
-                              </div>
-                              {subtask.category && (
-                                <div className="text-xs opacity-75 mt-1">
-                                  {subtask.category}
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
+                                    {subtask.title}
+                                  </div>
+                                  <div className="text-xs opacity-90">
+                                    {formatTime(subtask.datetime!)}
+                                    {subtask.estimatedTime && ` (${subtask.estimatedTime})`}
+                                  </div>
+                                  {subtask.category && (
+                                    <div className="text-xs opacity-75 mt-1">
+                                      {subtask.category}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
+                              </div>
                             </div>
                           </DraggableTaskItem>
                         ))}
@@ -448,18 +457,26 @@ export default function CalendarView() {
                             taskId={task.id}
                             subtaskId={subtask.id}
                             isDragging={draggedItem?.subtaskId === subtask.id}
+                            showDragHandle={true}
+                            onRenderDragHandle={(listeners, attributes) => (
+                              <DragHandle listeners={listeners} attributes={attributes} className="text-white opacity-75" />
+                            )}
                           >
                             <div
-                              className={`p-1 rounded text-xs text-white cursor-grab active:cursor-grabbing ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
+                              className={`p-1 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
                                 subtask.completed ? 'opacity-75' : ''
                               }`}
                               title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
                             >
-                              <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
-                                {subtask.title}
-                              </div>
-                              <div className="text-xs opacity-90">
-                                {formatTime(subtask.datetime!)}
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
+                                    {subtask.title}
+                                  </div>
+                                  <div className="text-xs opacity-90">
+                                    {formatTime(subtask.datetime!)}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </DraggableTaskItem>

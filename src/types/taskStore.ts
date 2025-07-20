@@ -15,10 +15,11 @@ interface TaskStore {
   exportTasks: () => Task[]
 }
 
-// カスタムストレージ（エラーハンドリング付き）
+// カスタムストレージ（SSR対応・エラーハンドリング付き）
 const customStorage = {
   getItem: (name: string): string | null => {
     try {
+      if (typeof window === 'undefined') return null
       return localStorage.getItem(name)
     } catch (error) {
       console.error('Failed to read from localStorage:', error)
@@ -27,6 +28,7 @@ const customStorage = {
   },
   setItem: (name: string, value: string): void => {
     try {
+      if (typeof window === 'undefined') return
       localStorage.setItem(name, value)
     } catch (error) {
       console.error('Failed to write to localStorage:', error)
@@ -34,6 +36,7 @@ const customStorage = {
   },
   removeItem: (name: string): void => {
     try {
+      if (typeof window === 'undefined') return
       localStorage.removeItem(name)
     } catch (error) {
       console.error('Failed to remove from localStorage:', error)
