@@ -248,7 +248,11 @@ export default function CalendarView() {
     const weekDates = getWeekDates(currentDate)
 
     return (
-      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext 
+        onDragStart={handleDragStart} 
+        onDragEnd={handleDragEnd}
+        modifiers={[]}
+      >
         <div className="space-y-4 sm:space-y-6 animate-fadeIn">
           {/* ナビゲーション */}
           <div className="flex items-center justify-between">
@@ -327,7 +331,7 @@ export default function CalendarView() {
                             isDragging={draggedItem?.subtaskId === subtask.id}
                           >
                             <div
-                              className={`p-1 sm:p-2 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
+                              className={`p-1 sm:p-2 rounded text-xs text-white cursor-grab active:cursor-grabbing ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
                                 subtask.completed ? 'opacity-75' : ''
                               }`}
                               title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
@@ -362,15 +366,13 @@ export default function CalendarView() {
   // 月表示コンポーネント
   const MonthView = () => {
     const monthDates = getMonthDates(currentDate)
-    const weeks = []
-    
-    // 7日ずつに分割
-    for (let i = 0; i < monthDates.length; i += 7) {
-      weeks.push(monthDates.slice(i, i + 7))
-    }
 
     return (
-      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext 
+        onDragStart={handleDragStart} 
+        onDragEnd={handleDragEnd}
+        modifiers={[]}
+      >
         <div className="space-y-4 sm:space-y-6 animate-fadeIn">
           {/* ナビゲーション */}
           <div className="flex items-center justify-between">
@@ -412,68 +414,69 @@ export default function CalendarView() {
               ))}
             </div>
 
-            {/* 週のグリッド */}
-            {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} className="grid grid-cols-7 border-b border-gray-200 last:border-b-0">
-                {week.map((date, dayIndex) => {
-                  const isToday = date.toDateString() === new Date().toDateString()
-                  const isCurrentMonth = date.getMonth() === currentDate.getMonth()
-                  const subtasks = getSubtasksForDate(date)
-                  
-                  return (
-                    <DroppableDateCell
-                      key={dayIndex}
-                      id={`date-${date.toISOString()}`}
-                      date={date}
-                      onDrop={handleDropOnDate}
+            {/* 日付グリッド */}
+            <div className="grid grid-cols-7">
+              {monthDates.map((date, index) => {
+                const isToday = date.toDateString() === new Date().toDateString()
+                const isCurrentMonth = date.getMonth() === currentDate.getMonth()
+                const subtasks = getSubtasksForDate(date)
+                
+                return (
+                  <DroppableDateCell
+                    key={index}
+                    id={`date-${date.toISOString()}`}
+                    date={date}
+                    onDrop={handleDropOnDate}
+                  >
+                    <div
+                      className={`min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 ${
+                        isToday ? 'bg-blue-50' : ''
+                      } ${!isCurrentMonth ? 'bg-gray-50' : ''}`}
                     >
-                      <div
-                        className={`calendar-cell min-h-20 sm:min-h-24 border-r border-gray-200 last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors ${
-                          isToday ? 'bg-blue-50' : ''
-                        } ${!isCurrentMonth ? 'bg-gray-50' : ''}`}
-                        onClick={() => handleDateClick(date)}
-                      >
-                        {/* 日付 */}
-                        <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
-                          isToday ? 'text-primary' : isCurrentMonth ? 'text-text' : 'text-gray-400'
-                        }`}>
-                          {date.getDate()}
-                        </div>
-
-                        {/* サブタスク（最大3件まで表示） */}
-                        <div className="p-1 space-y-1">
-                          {subtasks.slice(0, 3).map(({ task, subtask }, index) => (
-                            <DraggableTaskItem
-                              key={subtask.id}
-                              id={subtask.id}
-                              type="subtask"
-                              taskId={task.id}
-                              subtaskId={subtask.id}
-                              isDragging={draggedItem?.subtaskId === subtask.id}
-                            >
-                              <div
-                                className={`p-1 rounded text-xs text-white ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
-                                  subtask.completed ? 'opacity-75' : ''
-                                }`}
-                              >
-                                <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
-                                  {subtask.title}
-                                </div>
-                              </div>
-                            </DraggableTaskItem>
-                          ))}
-                          {subtasks.length > 3 && (
-                            <div className="text-xs text-gray-500 text-center">
-                              +{subtasks.length - 3}件
-                            </div>
-                          )}
-                        </div>
+                      {/* 日付 */}
+                      <div className={`p-1 sm:p-2 text-xs sm:text-sm font-medium ${
+                        isToday ? 'text-primary' : !isCurrentMonth ? 'text-gray-400' : 'text-text'
+                      }`}>
+                        {date.getDate()}
                       </div>
-                    </DroppableDateCell>
-                  )
-                })}
-              </div>
-            ))}
+
+                      {/* サブタスク */}
+                      <div className="p-1 space-y-0.5">
+                        {subtasks.slice(0, 3).map(({ task, subtask }) => (
+                          <DraggableTaskItem
+                            key={subtask.id}
+                            id={subtask.id}
+                            type="subtask"
+                            taskId={task.id}
+                            subtaskId={subtask.id}
+                            isDragging={draggedItem?.subtaskId === subtask.id}
+                          >
+                            <div
+                              className={`p-1 rounded text-xs text-white cursor-grab active:cursor-grabbing ${getCategoryColor(task.category, subtask.completed)} transition-all duration-150 ease-out hover:scale-[1.02] ${
+                                subtask.completed ? 'opacity-75' : ''
+                              }`}
+                              title={`${task.title} - ${subtask.title}${subtask.completed ? ' (完了)' : ''}`}
+                            >
+                              <div className={`font-medium truncate ${subtask.completed ? 'line-through' : ''}`}>
+                                {subtask.title}
+                              </div>
+                              <div className="text-xs opacity-90">
+                                {formatTime(subtask.datetime!)}
+                              </div>
+                            </div>
+                          </DraggableTaskItem>
+                        ))}
+                        {subtasks.length > 3 && (
+                          <div className="text-xs text-gray-500 text-center p-1">
+                            +{subtasks.length - 3}件
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </DroppableDateCell>
+                )
+              })}
+            </div>
           </div>
         </div>
       </DndContext>

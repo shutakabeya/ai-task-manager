@@ -35,13 +35,40 @@ export const DraggableTaskItem: React.FC<DraggableTaskItemProps> = ({
     position: isDragging ? 'relative' as const : 'static' as const,
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // チェックボックスやボタンなどのインタラクティブな要素の場合はドラッグを無効化
+    const target = e.target as HTMLElement
+    if (target.closest('button, input, select, textarea, a')) {
+      return
+    }
+    
+    // ドラッグリスナーを適用
+    if (listeners.onMouseDown) {
+      listeners.onMouseDown(e)
+    }
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // チェックボックスやボタンなどのインタラクティブな要素の場合はドラッグを無効化
+    const target = e.target as HTMLElement
+    if (target.closest('button, input, select, textarea, a')) {
+      return
+    }
+    
+    // ドラッグリスナーを適用
+    if (listeners.onTouchStart) {
+      listeners.onTouchStart(e)
+    }
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
-      className={`cursor-grab active:cursor-grabbing transition-all duration-200 ${
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
+      className={`transition-all duration-200 ${
         isDragging ? 'scale-105 shadow-lg' : 'hover:scale-[1.02]'
       }`}
     >

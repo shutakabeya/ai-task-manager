@@ -193,7 +193,11 @@ export default function TaskListView() {
     const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
 
     return (
-      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext 
+        onDragStart={handleDragStart} 
+        onDragEnd={handleDragEnd}
+        modifiers={[]}
+      >
         <div className="space-y-6 animate-fadeIn">
           {sectionOrder.map(section => {
             const items = groups[section]
@@ -223,14 +227,15 @@ export default function TaskListView() {
                       )?.id || '') : item.id)}
                     >
                       <div
-                        className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 ${
+                        className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-grab active:cursor-grabbing ${
                           item.completed ? 'opacity-75' : ''
                         }`}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
                         {/* チェックボックス */}
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation()
                             if (item.isSubtask) {
                               // サブタスクの場合、親タスクを探してトグル
                               const parentTask = tasks.find(task => 
@@ -297,7 +302,11 @@ export default function TaskListView() {
 
   // プロジェクト別ビュー（既存のビュー）
   const ProjectView = () => (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext 
+      onDragStart={handleDragStart} 
+      onDragEnd={handleDragEnd}
+      modifiers={[]}
+    >
       <div className="space-y-3 sm:space-y-4 animate-fadeIn">
         {tasks.map((task, taskIndex) => (
           <DraggableTaskItem
@@ -308,13 +317,16 @@ export default function TaskListView() {
             isDragging={draggedItem?.taskId === task.id}
           >
             <div
-              className="card-white overflow-hidden"
+              className="card-white overflow-hidden cursor-grab active:cursor-grabbing"
               style={{ animationDelay: `${taskIndex * 100}ms` }}
             >
               {/* タスクヘッダー */}
               <div
                 className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
-                onClick={() => toggleTaskExpansion(task.id)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleTaskExpansion(task.id)
+                }}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                   <div className="flex items-center space-x-2 sm:space-x-3">
@@ -394,7 +406,7 @@ export default function TaskListView() {
                         isDragging={draggedItem?.subtaskId === subtask.id}
                       >
                         <div
-                          className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 ${
+                          className={`task-item flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-md border border-gray-200 cursor-grab active:cursor-grabbing ${
                             subtask.completed ? 'opacity-75' : ''
                           }`}
                           style={{ animationDelay: `${subtaskIndex * 50}ms` }}
