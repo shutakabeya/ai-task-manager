@@ -68,7 +68,7 @@ export const DraggableTaskItem: React.FC<DraggableTaskItemProps> = ({
       {...attributes}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      className={`transition-all duration-200 ${
+      className={`transition-all duration-200 cursor-grab active:cursor-grabbing ${
         isDragging ? 'scale-105 shadow-lg' : 'hover:scale-[1.02]'
       }`}
     >

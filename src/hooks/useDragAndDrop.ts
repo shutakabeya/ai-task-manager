@@ -22,6 +22,7 @@ export const useDragAndDrop = () => {
       datetime: newDateTime
     }
     updateTask(taskId, updatedTask)
+    console.log('Task date updated:', taskId, newDateTime)
   }, [tasks, updateTask])
 
   // サブタスクの日時を更新
@@ -37,12 +38,14 @@ export const useDragAndDrop = () => {
       datetime: newDateTime
     }
     updateSubtask(taskId, subtaskId, updatedSubtask)
+    console.log('Subtask date updated:', taskId, subtaskId, newDateTime)
   }, [tasks, updateSubtask])
 
   // ドラッグ開始
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event
     const data = active.data.current
+    console.log('Drag start:', data)
 
     if (data?.type === 'task') {
       const task = tasks.find(t => t.id === data.taskId)
@@ -72,6 +75,7 @@ export const useDragAndDrop = () => {
   // ドラッグ終了
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
+    console.log('Drag end:', { active: active.data.current, over: over?.data.current })
 
     if (over && active.data.current) {
       const data = active.data.current
@@ -79,6 +83,7 @@ export const useDragAndDrop = () => {
 
       if (overData?.date) {
         const newDateTime = overData.date.toISOString()
+        console.log('Dropping on date:', newDateTime)
 
         if (data.type === 'task') {
           updateTaskDateTime(data.taskId, newDateTime)
