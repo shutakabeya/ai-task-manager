@@ -151,27 +151,27 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             />
 
             {/* モーダルコンテンツ */}
-            <div className="modal-base inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-strong transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-scaleIn">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="modal-base inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-strong transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-scaleIn w-full max-w-none mx-4">
+              <div className="bg-white px-6 pt-6 pb-6 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-primary bg-opacity-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full bg-primary bg-opacity-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg className="h-8 w-8 text-white sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                   </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-text">
+                  <div className="mt-4 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-xl leading-6 font-medium text-text sm:text-lg">
                       新しいカテゴリを作成
                     </h3>
-                    <div className="mt-2">
-                      <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="mt-4 sm:mt-2">
+                      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-4">
                         {/* カテゴリ */}
-                        <div className="space-y-3">
-                          <h4 className="text-sm font-medium text-text">カテゴリ</h4>
+                        <div className="space-y-4 sm:space-y-3">
+                          <h4 className="text-base font-medium text-text sm:text-sm">カテゴリ</h4>
                           
                           {/* カテゴリタイトル */}
                           <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="title" className="block text-base font-medium text-gray-700 mb-2 sm:text-sm sm:mb-1">
                               カテゴリタイトル <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -179,7 +179,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                               id="title"
                               value={formData.title}
                               onChange={(e) => handleInputChange('title', e.target.value)}
-                              className="input-base w-full px-3 py-2 text-sm"
+                              className="input-base w-full px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm"
                               placeholder="カテゴリのタイトルを入力"
                               required
                             />
@@ -187,41 +187,41 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
 
                           {/* 説明 */}
                           <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="description" className="block text-base font-medium text-gray-700 mb-2 sm:text-sm sm:mb-1">
                               説明（AI分解用）
                             </label>
                             <textarea
                               id="description"
                               value={formData.naturalText}
                               onChange={(e) => handleInputChange('naturalText', e.target.value)}
-                              rows={3}
-                              className="input-base w-full px-3 py-2 text-sm"
+                              rows={4}
+                              className="input-base w-full px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm"
                               placeholder="カテゴリの説明を自然文で入力（AIでタスク分解に使用）"
                             />
                           </div>
                         </div>
 
                         {/* タスク */}
-                        <div className="space-y-3">
+                        <div className="space-y-4 sm:space-y-3">
                           <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium text-text">タスク</h4>
+                            <h4 className="text-base font-medium text-text sm:text-sm">タスク</h4>
                             <button
                               type="button"
                               onClick={handleSubtaskAdd}
-                              className="btn-secondary px-2 py-1 text-xs"
+                              className="btn-secondary px-4 py-2 text-sm sm:px-2 sm:py-1 sm:text-xs"
                             >
                               + 追加
                             </button>
                           </div>
                           
                           {subtasks.map((subtask, index) => (
-                            <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2 animate-slideIn">
+                            <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3 sm:p-3 sm:space-y-2 animate-slideIn">
                               <div className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-gray-600">タスク {index + 1}</span>
+                                <span className="text-sm font-medium text-gray-600 sm:text-xs">タスク {index + 1}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleSubtaskDelete(index)}
-                                  className="text-red-500 hover:text-red-700 text-xs transition-all duration-150 ease-out hover:scale-110"
+                                  className="text-red-500 hover:text-red-700 text-sm transition-all duration-150 ease-out hover:scale-110 sm:text-xs"
                                 >
                                   削除
                                 </button>
@@ -231,12 +231,12 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                 type="text"
                                 value={subtask.title || ''}
                                 onChange={(e) => handleSubtaskChange(index, 'title', e.target.value)}
-                                className="input-base w-full px-2 py-1 text-sm"
+                                className="input-base w-full px-4 py-3 text-base sm:px-2 sm:py-1 sm:text-sm"
                                 placeholder="タスクのタイトル"
                                 required
                               />
                               
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-2">
                                 <DatePicker
                                   selected={subtask.datetime ? new Date(subtask.datetime) : null}
                                   onChange={(date) => handleSubtaskChange(index, 'datetime', date ? date.toISOString() : undefined)}
@@ -244,7 +244,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                   timeFormat="HH:mm"
                                   timeIntervals={15}
                                   dateFormat="yyyy/MM/dd HH:mm"
-                                  className="input-base w-full px-2 py-1 text-sm"
+                                  className="input-base w-full px-4 py-3 text-base sm:px-2 sm:py-1 sm:text-sm"
                                   placeholderText="日時（任意）"
                                   isClearable
                                 />
@@ -260,7 +260,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                         handleSubtaskChange(index, 'estimatedTime', value)
                                       }
                                     }}
-                                    className="input-base w-full px-2 py-1 text-sm appearance-none"
+                                    className="input-base w-full px-4 py-3 text-base appearance-none sm:px-2 sm:py-1 sm:text-sm"
                                   >
                                     <option value="">所要時間（任意）</option>
                                     <option value="15分">15分</option>
@@ -269,8 +269,8 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                     <option value="2時間">2時間</option>
                                     <option value="custom">カスタム</option>
                                   </select>
-                                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none sm:pr-2">
+                                    <svg className="w-5 h-5 text-gray-400 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                   </div>
@@ -283,7 +283,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                   type="text"
                                   value={subtask.estimatedTime === 'custom' ? '' : subtask.estimatedTime}
                                   onChange={(e) => handleSubtaskChange(index, 'estimatedTime', e.target.value)}
-                                  className="input-base w-full px-2 py-1 text-sm"
+                                  className="input-base w-full px-4 py-3 text-base sm:px-2 sm:py-1 sm:text-sm"
                                   placeholder="カスタム時間を入力（例：45分、1.5時間、90分）"
                                 />
                               )}
@@ -297,14 +297,14 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                             type="button"
                             onClick={handleGptDecompose}
                             disabled={isLoading || !formData.naturalText.trim()}
-                            className="btn-secondary px-3 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn-secondary px-4 py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed sm:px-3 sm:py-2 sm:text-sm"
                           >
                             {isLoading ? '処理中...' : '🤖 AIでタスク生成'}
                           </button>
                           
                           {isLoading && (
-                            <div className="flex items-center space-x-2 text-sm text-gray-500">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                            <div className="flex items-center space-x-2 text-base text-gray-500 sm:text-sm">
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary sm:h-4 sm:w-4"></div>
                               <span>AIがタスクを生成中...</span>
                             </div>
                           )}
@@ -312,30 +312,30 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
 
                         {/* エラーメッセージ */}
                         {error && (
-                          <div className="text-red-600 text-sm bg-red-50 p-2 rounded">
+                          <div className="text-red-600 text-base bg-red-50 p-4 rounded sm:text-sm sm:p-2">
                             {error}
                           </div>
                         )}
 
                         {/* アクションボタン */}
-                        <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6 sm:pt-4">
                           <button
                             type="button"
                             onClick={onClose}
-                            className="btn-secondary w-full sm:w-auto"
+                            className="btn-secondary w-full sm:w-auto px-6 py-3 text-base sm:px-4 sm:py-2 sm:text-sm"
                           >
                             キャンセル
                           </button>
                           <button
                             type="submit"
                             disabled={!formData.title.trim() || isLoading || subtasks.length === 0}
-                            className="btn-primary w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn-primary w-full sm:w-auto px-6 py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed sm:px-4 sm:py-2 sm:text-sm"
                           >
                             カテゴリを作成
                           </button>
                         </div>
                         {/* 必須項目注意書き */}
-                        <div className="mt-2 text-xs text-gray-400 text-right">
+                        <div className="mt-3 text-sm text-gray-400 text-right sm:text-xs">
                           *がついている項目は必須です
                         </div>
                       </form>

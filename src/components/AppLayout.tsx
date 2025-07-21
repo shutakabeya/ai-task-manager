@@ -81,7 +81,7 @@ export default function AppLayout() {
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                   }`}
                 >
-                  📝 リマインダー
+                  📋 リマインダー
                 </button>
                 <button
                   onClick={() => setCurrentView('calendar')}
@@ -91,7 +91,7 @@ export default function AppLayout() {
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                   }`}
                 >
-                  📅 カレンダー
+                  🗓️ カレンダー
                 </button>
               </div>
             </div>
