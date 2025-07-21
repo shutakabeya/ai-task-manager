@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { useTaskStore } from '../types/taskStore'
@@ -167,8 +167,6 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                       <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-4">
                         {/* カテゴリ */}
                         <div className="space-y-4 sm:space-y-3">
-                          <h4 className="text-base font-medium text-text sm:text-sm">カテゴリ</h4>
-                          
                           {/* カテゴリタイトル */}
                           <div>
                             <label htmlFor="title" className="block text-base font-medium text-gray-700 mb-2 sm:text-sm sm:mb-1">
