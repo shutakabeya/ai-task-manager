@@ -73,7 +73,7 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
           originalText: formData.originalText.trim()
         }
         updateTask(task.id, updatedTask)
-        toast.success('タスクを更新しました')
+        toast.success('カテゴリを更新しました')
       } else if (subtask) {
         // サブタスク更新
         const updatedSubtask: Subtask = {
@@ -84,7 +84,7 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
           estimatedTime: formData.estimatedTime || undefined
         }
         updateSubtask(subtask.task.id, subtask.subtask.id, updatedSubtask)
-        toast.success('サブタスクを更新しました')
+        toast.success('タスクを更新しました')
       }
       onClose()
     } catch (error) {
@@ -101,11 +101,11 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
       if (task) {
         // タスク削除
         deleteTask(task.id)
-        toast.success('タスクを削除しました')
+        toast.success('カテゴリを削除しました')
       } else if (subtask) {
         // サブタスク削除
         deleteSubtask(subtask.task.id, subtask.subtask.id)
-        toast.success('サブタスクを削除しました')
+        toast.success('タスクを削除しました')
       }
       setShowDeleteConfirm(false)
       onClose()
@@ -128,7 +128,7 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
 
   const isEditingTask = !!task
   const isEditingSubtask = !!subtask
-  const modalTitle = isEditingTask ? 'タスク編集' : 'サブタスク編集'
+  const modalTitle = isEditingTask ? 'カテゴリ編集' : 'タスク編集'
   const submitButtonText = isSubmitting ? '更新中...' : '保存'
   const deleteButtonText = isDeleting ? '削除中...' : '削除'
 
@@ -156,7 +156,7 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
                 </div>
               </div>
               <p className="text-sm text-gray-500 mb-6">
-                {isEditingTask ? 'このタスクを削除しますか？' : 'このサブタスクを削除しますか？'}
+                {isEditingTask ? 'このカテゴリを削除しますか？' : 'このタスクを削除しますか？'}
                 <br />
                 <span className="font-medium text-red-600">この操作は取り消せません。</span>
               </p>

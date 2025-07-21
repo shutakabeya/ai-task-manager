@@ -15,7 +15,6 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const addTask = useTaskStore(state => state.addTask)
   const [formData, setFormData] = useState({
     title: '',
-    category: '',
     naturalText: '',
     datetime: '',
     estimatedTime: '',
@@ -28,35 +27,27 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     e.preventDefault()
     
     if (!formData.title.trim()) {
-      setError('タイトルは必須です')
+      setError('カテゴリタイトルは必須です')
       return
     }
 
-    // サブタスクが空の場合は、メインタスクと同じタイトルのサブタスクを追加
-    let finalSubtasks = subtasks
     if (subtasks.length === 0) {
-      finalSubtasks = [{
-        id: '',
-        title: formData.title,
-        datetime: formData.datetime || undefined,
-        estimatedTime: formData.estimatedTime || '',
-        category: formData.category || '未分類',
-        completed: false
-      }]
+      setError('タスクを少なくとも1つ追加してください')
+      return
     }
 
-    // サブタスクにIDを付与し、カテゴリが空の場合はメインタスクのカテゴリを適用
-    const subtasksWithIds = finalSubtasks.map((subtask, index) => ({
+    // サブタスクにIDを付与し、カテゴリは新カテゴリ（旧メインタスク）の名前を使用
+    const subtasksWithIds = subtasks.map((subtask, index) => ({
       ...subtask,
       id: `subtask-${Date.now()}-${index}`,
       completed: false,
-      category: subtask.category || formData.category || '未分類' // カテゴリが空の場合はメインタスクのカテゴリまたはデフォルト値を適用
+      category: formData.title // 新カテゴリ（旧メインタスク）の名前をカテゴリとして使用
     }))
 
     const newTask: Task = {
       id: `task-${Date.now()}`,
       title: formData.title,
-      category: formData.category || '未分類',
+      category: formData.title, // 新カテゴリ（旧メインタスク）の名前をカテゴリとして使用
       date: formData.datetime ? new Date(formData.datetime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       datetime: formData.datetime || undefined,
       estimatedTime: formData.estimatedTime || undefined,
@@ -67,7 +58,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     addTask(newTask)
     
     // フォームをリセット
-    setFormData({ title: '', category: '', naturalText: '', datetime: '', estimatedTime: '' })
+    setFormData({ title: '', naturalText: '', datetime: '', estimatedTime: '' })
     setSubtasks([])
     setError('')
     onClose()
@@ -101,13 +92,13 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         throw new Error(data.error || 'AIの処理に失敗しました')
       }
 
-      // AI生成されたサブタスクを初期化（カテゴリは空にして、メインタスクのカテゴリを適用）
+      // AI生成されたサブタスクを初期化（カテゴリは新カテゴリの名前を使用）
       const initialSubtasks = (data.subtasks || []).map((subtask: any) => ({
         id: '',
         title: subtask.title,
         datetime: undefined,
         estimatedTime: '',
-        category: '', // 空にして、メインタスクのカテゴリを適用
+        category: formData.title, // 新カテゴリ（旧メインタスク）の名前をカテゴリとして使用
         completed: false
       }))
       
@@ -135,7 +126,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       title: '', 
       datetime: undefined, 
       estimatedTime: '', 
-      category: '', // 空にして、メインタスクのカテゴリを適用
+      category: formData.title, // 新カテゴリ（旧メインタスク）の名前をカテゴリとして使用
       completed: false 
     }])
   }
@@ -170,18 +161,18 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                     <h3 className="text-lg leading-6 font-medium text-text">
-                      新しいタスクを作成
+                      新しいカテゴリを作成
                     </h3>
                     <div className="mt-2">
                       <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* メインタスク */}
+                        {/* カテゴリ */}
                         <div className="space-y-3">
-                          <h4 className="text-sm font-medium text-text">メインタスク</h4>
+                          <h4 className="text-sm font-medium text-text">カテゴリ</h4>
                           
-                          {/* タイトル */}
+                          {/* カテゴリタイトル */}
                           <div>
                             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                              タイトル *
+                              カテゴリタイトル *
                             </label>
                             <input
                               type="text"
@@ -189,92 +180,15 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                               value={formData.title}
                               onChange={(e) => handleInputChange('title', e.target.value)}
                               className="input-base w-full px-3 py-2 text-sm"
-                              placeholder="タスクのタイトルを入力"
+                              placeholder="カテゴリのタイトルを入力"
                               required
-                            />
-                          </div>
-
-                          {/* カテゴリ */}
-                          <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                              カテゴリ（任意）
-                            </label>
-                            <input
-                              type="text"
-                              id="category"
-                              value={formData.category}
-                              onChange={(e) => handleInputChange('category', e.target.value)}
-                              className="input-base w-full px-3 py-2 text-sm"
-                              placeholder="カテゴリを入力（例：仕事、プライベート）"
-                            />
-                          </div>
-
-                          {/* 予想時間 */}
-                          <div>
-                            <label htmlFor="estimatedTime" className="block text-sm font-medium text-gray-700 mb-1">
-                              予想時間
-                            </label>
-                            <div className="relative">
-                              <select
-                                value={formData.estimatedTime || ''}
-                                onChange={(e) => {
-                                  const value = e.target.value
-                                  if (value === 'custom') {
-                                    // カスタムが選択された場合、入力フィールドを表示
-                                    handleInputChange('estimatedTime', '')
-                                  } else {
-                                    handleInputChange('estimatedTime', value)
-                                  }
-                                }}
-                                className="input-base w-full px-2 py-1 text-sm appearance-none"
-                              >
-                                <option value="">予想時間（任意）</option>
-                                <option value="15分">15分</option>
-                                <option value="30分">30分</option>
-                                <option value="1時間">1時間</option>
-                                <option value="2時間">2時間</option>
-                                <option value="custom">カスタム</option>
-                              </select>
-                              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </div>
-                            </div>
-                            {/* カスタム時間入力フィールド */}
-                            {(formData.estimatedTime === '' || formData.estimatedTime === 'custom') && (
-                              <input
-                                type="text"
-                                value={formData.estimatedTime === 'custom' ? '' : formData.estimatedTime}
-                                onChange={(e) => handleInputChange('estimatedTime', e.target.value)}
-                                className="input-base w-full px-2 py-1 text-sm"
-                                placeholder="カスタム時間を入力（例：45分、1.5時間、90分）"
-                              />
-                            )}
-                          </div>
-
-                          {/* 日時 */}
-                          <div>
-                            <label htmlFor="datetime" className="block text-sm font-medium text-gray-700 mb-1">
-                              日時（後で入力可能）
-                            </label>
-                            <DatePicker
-                              selected={formData.datetime ? new Date(formData.datetime) : null}
-                              onChange={(date) => handleInputChange('datetime', date ? date.toISOString() : undefined)}
-                              showTimeSelect
-                              timeFormat="HH:mm"
-                              timeIntervals={15}
-                              dateFormat="yyyy/MM/dd HH:mm"
-                              className="input-base w-full px-3 py-2 text-sm"
-                              placeholderText="日時を選択（後で設定可能）"
-                              isClearable
                             />
                           </div>
 
                           {/* 説明 */}
                           <div>
                             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                              説明
+                              説明（AI分解用）
                             </label>
                             <textarea
                               id="description"
@@ -282,15 +196,15 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                               onChange={(e) => handleInputChange('naturalText', e.target.value)}
                               rows={3}
                               className="input-base w-full px-3 py-2 text-sm"
-                              placeholder="タスクの詳細説明"
+                              placeholder="カテゴリの説明を自然文で入力（AIでタスク分解に使用）"
                             />
                           </div>
                         </div>
 
-                        {/* サブタスク */}
+                        {/* タスク */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium text-text">サブタスク</h4>
+                            <h4 className="text-sm font-medium text-text">タスク</h4>
                             <button
                               type="button"
                               onClick={handleSubtaskAdd}
@@ -303,7 +217,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                           {subtasks.map((subtask, index) => (
                             <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2 animate-slideIn">
                               <div className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-gray-600">サブタスク {index + 1}</span>
+                                <span className="text-xs font-medium text-gray-600">タスク {index + 1}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleSubtaskDelete(index)}
@@ -318,17 +232,21 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                 value={subtask.title || ''}
                                 onChange={(e) => handleSubtaskChange(index, 'title', e.target.value)}
                                 className="input-base w-full px-2 py-1 text-sm"
-                                placeholder="サブタスクのタイトル"
+                                placeholder="タスクのタイトル *"
                                 required
                               />
                               
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <input
-                                  type="text"
-                                  value={subtask.category || ''}
-                                  onChange={(e) => handleSubtaskChange(index, 'category', e.target.value)}
+                                <DatePicker
+                                  selected={subtask.datetime ? new Date(subtask.datetime) : null}
+                                  onChange={(date) => handleSubtaskChange(index, 'datetime', date ? date.toISOString() : undefined)}
+                                  showTimeSelect
+                                  timeFormat="HH:mm"
+                                  timeIntervals={15}
+                                  dateFormat="yyyy/MM/dd HH:mm"
                                   className="input-base w-full px-2 py-1 text-sm"
-                                  placeholder="カテゴリ（空欄でメインタスクのカテゴリを継承）"
+                                  placeholderText="日時（任意）"
+                                  isClearable
                                 />
                                 <div className="relative">
                                   <select
@@ -344,7 +262,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                     }}
                                     className="input-base w-full px-2 py-1 text-sm appearance-none"
                                   >
-                                    <option value="">予想時間（任意）</option>
+                                    <option value="">所要時間（任意）</option>
                                     <option value="15分">15分</option>
                                     <option value="30分">30分</option>
                                     <option value="1時間">1時間</option>
@@ -369,18 +287,6 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                   placeholder="カスタム時間を入力（例：45分、1.5時間、90分）"
                                 />
                               )}
-                              
-                              <DatePicker
-                                selected={subtask.datetime ? new Date(subtask.datetime) : null}
-                                onChange={(date) => handleSubtaskChange(index, 'datetime', date ? date.toISOString() : undefined)}
-                                showTimeSelect
-                                timeFormat="HH:mm"
-                                timeIntervals={15}
-                                dateFormat="yyyy/MM/dd HH:mm"
-                                className="input-base w-full px-2 py-1 text-sm"
-                                placeholderText="日時を選択（後で設定可能）"
-                                isClearable
-                              />
                             </div>
                           ))}
                         </div>
@@ -393,16 +299,23 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                             disabled={isLoading || !formData.naturalText.trim()}
                             className="btn-secondary px-3 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {isLoading ? '処理中...' : '🤖 AIでサブタスク生成'}
+                            {isLoading ? '処理中...' : '🤖 AIでタスク生成'}
                           </button>
                           
                           {isLoading && (
                             <div className="flex items-center space-x-2 text-sm text-gray-500">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                              <span>AIがサブタスクを生成中...</span>
+                              <span>AIがタスクを生成中...</span>
                             </div>
                           )}
                         </div>
+
+                        {/* エラーメッセージ */}
+                        {error && (
+                          <div className="text-red-600 text-sm bg-red-50 p-2 rounded">
+                            {error}
+                          </div>
+                        )}
 
                         {/* アクションボタン */}
                         <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
@@ -415,10 +328,10 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                           </button>
                           <button
                             type="submit"
-                            disabled={!formData.title.trim() || isLoading}
+                            disabled={!formData.title.trim() || isLoading || subtasks.length === 0}
                             className="btn-primary w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            タスクを作成
+                            カテゴリを作成
                           </button>
                         </div>
                       </form>

@@ -19,17 +19,17 @@ export default function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskD
   if (!isOpen || !task) return null
 
   const handleDelete = async () => {
-    if (!window.confirm('このタスクを削除しますか？この操作は元に戻せません。')) {
+    if (!window.confirm('このカテゴリを削除しますか？この操作は元に戻せません。')) {
       return
     }
 
     setIsDeleting(true)
     try {
       deleteTask(task.id)
-      toast.success('タスクを削除しました')
+      toast.success('カテゴリを削除しました')
       onClose()
     } catch (error) {
-      toast.error('タスクの削除に失敗しました')
+      toast.error('カテゴリの削除に失敗しました')
       console.error('Delete error:', error)
     } finally {
       setIsDeleting(false)
@@ -76,7 +76,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskD
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg leading-6 font-medium text-white truncate">
-                    タスク詳細
+                    カテゴリ詳細
                   </h3>
                   <p className="text-sm text-blue-100 truncate">
                     {task.category}
@@ -127,7 +127,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskD
                              {/* サブタスク */}
                <div className="animate-slideIn" style={{ animationDelay: '0.3s' }}>
                  <h4 className="text-sm font-medium text-gray-500 mb-2">
-                   サブタスク ({task.subtasks.length}件)
+                   タスク ({task.subtasks.length}件)
                  </h4>
                  {task.subtasks.length > 0 ? (
                    <div className="space-y-2">
@@ -149,7 +149,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskD
                    </div>
                  ) : (
                    <div className="bg-gray-50 rounded-lg p-3">
-                     <p className="text-sm text-gray-500 text-center">サブタスクがありません</p>
+                     <p className="text-sm text-gray-500 text-center">タスクがありません</p>
                    </div>
                  )}
                </div>

@@ -110,7 +110,7 @@ export default function AppLayout() {
         <button
           onClick={() => setIsModalOpen(true)}
           className="w-12 h-12 sm:w-14 sm:h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-medium flex items-center justify-center text-xl sm:text-2xl transition-all duration-200 ease-out hover:scale-110 hover:shadow-strong"
-          aria-label="タスクを追加"
+          aria-label="カテゴリを追加"
         >
           +
         </button>
@@ -119,7 +119,7 @@ export default function AppLayout() {
       {/* データ管理ボタン */}
       <DataManagement />
 
-      {/* タスク追加モーダル */}
+      {/* カテゴリ追加モーダル */}
       <AddTaskModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

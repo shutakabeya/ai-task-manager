@@ -50,13 +50,13 @@ export default function TaskListView() {
   }
 
   const handleDeleteTask = (taskId: string) => {
-    if (window.confirm('このタスクを削除しますか？この操作は元に戻せません。')) {
+    if (window.confirm('このカテゴリを削除しますか？この操作は元に戻せません。')) {
       deleteTask(taskId)
     }
   }
 
   const handleDeleteSubtask = (taskId: string, subtaskId: string) => {
-    if (window.confirm('このサブタスクを削除しますか？この操作は元に戻せません。')) {
+    if (window.confirm('このタスクを削除しますか？この操作は元に戻せません。')) {
       deleteSubtask(taskId, subtaskId)
     }
   }
@@ -218,8 +218,8 @@ export default function TaskListView() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
-        <h3 className="text-base sm:text-lg font-medium text-text mb-2">タスクがありません</h3>
-        <p className="text-sm sm:text-base text-gray-500">新しいタスクを作成して始めましょう</p>
+        <h3 className="text-base sm:text-lg font-medium text-text mb-2">カテゴリがありません</h3>
+        <p className="text-sm sm:text-base text-gray-500">新しいカテゴリを作成して始めましょう</p>
       </div>
     )
   }
@@ -323,11 +323,6 @@ export default function TaskListView() {
                           }`}>
                             {item.title}
                           </p>
-                          {item.isSubtask && item.parentTask && (
-                            <span className="text-xs text-gray-400">
-                              ({item.parentTask})
-                            </span>
-                          )}
                         </div>
                         
                         <div className="flex items-center space-x-3 mt-1">
@@ -393,7 +388,7 @@ export default function TaskListView() {
     )
   }
 
-  // プロジェクト別ビュー
+  // カテゴリ別ビュー
   const ProjectView = () => (
     <div className="space-y-3 sm:space-y-4 animate-fadeIn">
       {tasks.map((task, taskIndex) => (
@@ -405,7 +400,7 @@ export default function TaskListView() {
             className="card-white overflow-hidden cursor-grab active:cursor-grabbing"
             style={{ animationDelay: `${taskIndex * 100}ms` }}
           >
-            {/* タスクヘッダー */}
+            {/* カテゴリヘッダー */}
             <div
               className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-all duration-150 ease-out"
               data-clickable="true"
@@ -539,7 +534,7 @@ export default function TaskListView() {
               </div>
             </div>
 
-            {/* サブタスク一覧 */}
+            {/* タスク一覧 */}
             {expandedTasks.has(task.id) && (
               <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
                 <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
@@ -609,7 +604,7 @@ export default function TaskListView() {
                           </div>
                         </div>
 
-                        {/* サブタスクアクションボタン */}
+                        {/* タスクアクションボタン */}
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={(e) => {
@@ -673,7 +668,7 @@ export default function TaskListView() {
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
-            📁 プロジェクト別
+            📁 カテゴリ別
           </button>
         </div>
       </div>
@@ -681,7 +676,7 @@ export default function TaskListView() {
       {/* ビューコンテンツ */}
       {viewMode === 'date' ? <DateView /> : <ProjectView />}
 
-      {/* タスク詳細モーダル */}
+      {/* カテゴリ詳細モーダル */}
       <TaskDetailModal
         task={selectedTask}
         isOpen={isDetailModalOpen}
@@ -692,7 +687,7 @@ export default function TaskListView() {
         onEdit={handleEditTask}
       />
 
-      {/* タスク編集モーダル */}
+      {/* カテゴリ編集モーダル */}
       <TaskEditModal
         task={editingTask}
         subtask={editingSubtask}
