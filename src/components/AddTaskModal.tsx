@@ -172,7 +172,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                           {/* カテゴリタイトル */}
                           <div>
                             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                              カテゴリタイトル *
+                              カテゴリタイトル <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -232,7 +232,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                 value={subtask.title || ''}
                                 onChange={(e) => handleSubtaskChange(index, 'title', e.target.value)}
                                 className="input-base w-full px-2 py-1 text-sm"
-                                placeholder="タスクのタイトル *"
+                                placeholder="タスクのタイトル"
                                 required
                               />
                               
@@ -333,6 +333,10 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                           >
                             カテゴリを作成
                           </button>
+                        </div>
+                        {/* 必須項目注意書き */}
+                        <div className="mt-2 text-xs text-gray-400 text-right">
+                          *がついている項目は必須です
                         </div>
                       </form>
                     </div>

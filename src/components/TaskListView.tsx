@@ -8,11 +8,14 @@ import { Task, Subtask } from '../types/task'
 import { DragHandle } from './DragHandle'
 import TaskDetailModal from './TaskDetailModal'
 import TaskEditModal from './TaskEditModal'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
+import TaskAddInlineForm from './TaskAddInlineForm';
 
 type ViewMode = 'date' | 'project'
 
 export default function TaskListView() {
-  const { tasks, toggleSubtask, deleteTask, deleteSubtask } = useTaskStore()
+  const { tasks, toggleSubtask, deleteTask, deleteSubtask, updateTask } = useTaskStore()
   const [viewMode, setViewMode] = useState<ViewMode>('date')
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -20,6 +23,9 @@ export default function TaskListView() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [editingSubtask, setEditingSubtask] = useState<{task: Task, subtask: Subtask} | null>(null)
+  // カテゴリごとのタスク追加フォームの開閉状態と入力値を管理
+  const [openAddForm, setOpenAddForm] = useState<{ [taskId: string]: boolean }>({})
+  const [addFormData, setAddFormData] = useState<{ [taskId: string]: { title: string; datetime: string; estimatedTime: string } }>({})
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks)
@@ -390,7 +396,7 @@ export default function TaskListView() {
 
   // カテゴリ別ビュー
   const ProjectView = () => (
-    <div className="space-y-3 sm:space-y-4 animate-fadeIn">
+    <div className="space-y-3 sm:space-y-4">
       {tasks.map((task, taskIndex) => (
         <div
           key={task.id}
@@ -477,6 +483,21 @@ export default function TaskListView() {
                   
                   {/* アクションボタン */}
                   <div className="flex items-center space-x-2">
+                    {/* ここに＋タスクを追加ボタンを追加 */}
+                    <button
+                      type="button"
+                      className="btn-secondary px-2 py-1 text-xs"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setOpenAddForm(prev => ({ ...prev, [task.id]: !prev[task.id] }))
+                        // 初回展開時はフォームを初期化
+                        if (!openAddForm[task.id]) {
+                          setAddFormData(prev => ({ ...prev, [task.id]: { title: '', datetime: '', estimatedTime: '' } }))
+                        }
+                      }}
+                    >
+                      ＋タスクを追加
+                    </button>
                     <button
                       onClick={(e) => {
                         e.preventDefault()
@@ -533,7 +554,12 @@ export default function TaskListView() {
                 </div>
               </div>
             </div>
-
+            {/* タスク追加フォーム（アコーディオン式） */}
+            {openAddForm[task.id] && (
+              <div className="bg-gray-50 border-t border-gray-200 p-3 sm:p-4">
+                <TaskAddInlineForm task={task} onClose={() => setOpenAddForm(prev => ({ ...prev, [task.id]: false }))} />
+              </div>
+            )}
             {/* タスク一覧 */}
             {expandedTasks.has(task.id) && (
               <div className="border-t border-gray-200 bg-gray-50 animate-slideIn">
@@ -644,7 +670,7 @@ export default function TaskListView() {
   )
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
         <h2 className="text-lg sm:text-xl font-semibold text-text">タスク一覧</h2>
         
