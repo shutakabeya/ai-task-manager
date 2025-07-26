@@ -5,6 +5,7 @@ export type Subtask = {
   estimatedTime?: string;   // e.g. "1.5h"
   category?: string;        // サブタスクのカテゴリ
   completed: boolean;
+  memo?: string;            // メモ（任意）
 };
 
 export type Task = {
@@ -16,4 +17,5 @@ export type Task = {
   estimatedTime?: string;   // メインタスクの予想時間
   originalText: string;     // 元の自然文入力内容
   subtasks: Subtask[];
+  memo?: string;            // メモ（任意）
 }; 

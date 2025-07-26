@@ -24,7 +24,8 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
     category: '',
     datetime: '',
     estimatedTime: '',
-    originalText: ''
+    originalText: '',
+    memo: ''
   })
 
   // 編集対象が変更されたときにフォームをリセット
@@ -37,7 +38,8 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
           category: task.category,
           datetime: task.datetime || '',
           estimatedTime: task.estimatedTime || '',
-          originalText: task.originalText
+          originalText: task.originalText,
+          memo: task.memo || ''
         })
       } else if (subtask) {
         // サブタスク編集
@@ -46,7 +48,8 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
           category: subtask.subtask.category || '',
           datetime: subtask.subtask.datetime || '',
           estimatedTime: subtask.subtask.estimatedTime || '',
-          originalText: subtask.subtask.title // サブタスクにはoriginalTextがないのでtitleを使用
+          originalText: subtask.subtask.title, // サブタスクにはoriginalTextがないのでtitleを使用
+          memo: subtask.subtask.memo || ''
         })
       }
     }
@@ -70,7 +73,8 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
           category: formData.category.trim(),
           datetime: formData.datetime || undefined,
           estimatedTime: formData.estimatedTime || undefined,
-          originalText: formData.originalText.trim()
+          originalText: formData.originalText.trim(),
+          memo: formData.memo || undefined
         }
         updateTask(task.id, updatedTask)
         toast.success('カテゴリを更新しました')
@@ -81,7 +85,8 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
           title: formData.title.trim(),
           category: formData.category || undefined,
           datetime: formData.datetime || undefined,
-          estimatedTime: formData.estimatedTime || undefined
+          estimatedTime: formData.estimatedTime || undefined,
+          memo: formData.memo || undefined
         }
         updateSubtask(subtask.task.id, subtask.subtask.id, updatedSubtask)
         toast.success('タスクを更新しました')
@@ -259,24 +264,24 @@ export default function TaskEditModal({ task, subtask, isOpen, onClose }: TaskEd
                 />
               </div>
 
-              {/* 予想時間 */}
+              {/* メモ */}
               <div className="animate-slideIn" style={{ animationDelay: '0.3s' }}>
-                <label htmlFor="estimatedTime" className="block text-sm font-medium text-gray-700 mb-2">
-                  予想時間
+                <label htmlFor="memo" className="block text-sm font-medium text-gray-700 mb-2">
+                  メモ
                 </label>
-                <input
-                  type="text"
-                  id="estimatedTime"
-                  value={formData.estimatedTime}
-                  onChange={(e) => handleInputChange('estimatedTime', e.target.value)}
-                  className="input-base w-full text-base py-3"
-                  placeholder="例：1.5h、30m、2時間"
+                <textarea
+                  id="memo"
+                  value={formData.memo}
+                  onChange={(e) => handleInputChange('memo', e.target.value)}
+                  className="input-base w-full h-20 resize-none text-base py-3"
+                  placeholder="メモを入力"
+                  rows={3}
                 />
               </div>
 
               {/* 自然文入力内容（タスクのみ） */}
               {isEditingTask && (
-                <div className="animate-slideIn" style={{ animationDelay: '0.4s' }}>
+                <div className="animate-slideIn" style={{ animationDelay: '0.5s' }}>
                   <label htmlFor="originalText" className="block text-sm font-medium text-gray-700 mb-2">
                     元の文章
                   </label>

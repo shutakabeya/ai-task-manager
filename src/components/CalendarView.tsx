@@ -220,6 +220,11 @@ export default function CalendarView() {
                     <div className="text-xs opacity-75 mt-1">
                       {task.title} - {subtask.category || task.category}
                     </div>
+                    {subtask.memo && (
+                      <div className="text-xs opacity-75 mt-1 line-clamp-1">
+                        📝 {subtask.memo}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

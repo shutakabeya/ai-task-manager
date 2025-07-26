@@ -5,7 +5,7 @@ import { Task, Subtask } from '../types/task';
 
 export default function TaskAddInlineForm({ task, onClose }: { task: Task, onClose: () => void }) {
   const { updateTask } = useTaskStore();
-  const [form, setForm] = useState({ title: '', datetime: '', estimatedTime: '' });
+  const [form, setForm] = useState({ title: '', datetime: '', estimatedTime: '', memo: '' });
 
   return (
     <form
@@ -18,10 +18,11 @@ export default function TaskAddInlineForm({ task, onClose }: { task: Task, onClo
           datetime: form.datetime || undefined,
           estimatedTime: form.estimatedTime || undefined,
           category: task.category,
-          completed: false
+          completed: false,
+          memo: form.memo || undefined
         };
         updateTask(task.id, { ...task, subtasks: [...task.subtasks, newSubtask] });
-        setForm({ title: '', datetime: '', estimatedTime: '' });
+        setForm({ title: '', datetime: '', estimatedTime: '', memo: '' });
         onClose();
       }}
       className="space-y-2"
@@ -46,14 +47,14 @@ export default function TaskAddInlineForm({ task, onClose }: { task: Task, onClo
           placeholderText="日時"
           isClearable
         />
-        <input
-          type="text"
-          value={form.estimatedTime}
-          onChange={e => setForm(f => ({ ...f, estimatedTime: e.target.value }))}
-          className="input-base w-full px-2 py-1 text-sm"
-          placeholder="所要時間"
-        />
       </div>
+      <textarea
+        value={form.memo}
+        onChange={e => setForm(f => ({ ...f, memo: e.target.value }))}
+        className="input-base w-full px-2 py-1 text-sm"
+        placeholder="メモ"
+        rows={2}
+      />
       <div className="flex justify-end space-x-2 pt-1">
         <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={onClose}>
           キャンセル

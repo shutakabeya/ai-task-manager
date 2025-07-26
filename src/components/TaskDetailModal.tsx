@@ -124,8 +124,18 @@ export default function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskD
                 </div>
               </div>
 
+              {/* メモ */}
+              {task.memo && (
+                <div className="animate-slideIn" style={{ animationDelay: '0.25s' }}>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">メモ</h4>
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <p className="text-gray-700 text-sm leading-relaxed">{task.memo}</p>
+                  </div>
+                </div>
+              )}
+
                              {/* サブタスク */}
-               <div className="animate-slideIn" style={{ animationDelay: '0.3s' }}>
+               <div className="animate-slideIn" style={{ animationDelay: '0.35s' }}>
                  <h4 className="text-sm font-medium text-gray-500 mb-2">
                    タスク ({task.subtasks.length}件)
                  </h4>
@@ -141,6 +151,11 @@ export default function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskD
                            {subtask.datetime && (
                              <p className="text-xs text-gray-500 mt-1">
                                {new Date(subtask.datetime).toLocaleString('ja-JP')}
+                             </p>
+                           )}
+                           {subtask.memo && (
+                             <p className="text-xs text-gray-600 mt-1">
+                               📝 {subtask.memo}
                              </p>
                            )}
                          </div>

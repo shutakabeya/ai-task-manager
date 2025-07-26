@@ -18,6 +18,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     naturalText: '',
     datetime: '',
     estimatedTime: '',
+    memo: '',
   })
   const [subtasks, setSubtasks] = useState<Subtask[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -53,13 +54,14 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       datetime: formData.datetime || undefined,
       estimatedTime: formData.estimatedTime || undefined,
       originalText: formData.naturalText || formData.title,
+      memo: formData.memo || undefined,
       subtasks: subtasksWithIds
     }
 
     addTask(newTask)
     
     // フォームをリセット
-    setFormData({ title: '', naturalText: '', datetime: '', estimatedTime: '' })
+    setFormData({ title: '', naturalText: '', datetime: '', estimatedTime: '', memo: '' })
     setSubtasks([])
     setError('')
     onClose()
@@ -100,7 +102,8 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         datetime: undefined,
         estimatedTime: '',
         category: formData.title, // 新カテゴリ（旧メインタスク）の名前をカテゴリとして使用
-        completed: false
+        completed: false,
+        memo: ''
       }))
       
       setSubtasks(initialSubtasks)
@@ -128,7 +131,8 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       datetime: undefined, 
       estimatedTime: '', 
       category: formData.title, // 新カテゴリ（旧メインタスク）の名前をカテゴリとして使用
-      completed: false 
+      completed: false,
+      memo: ''
     }])
   }
 
@@ -207,6 +211,21 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                               placeholder="カテゴリの説明を自然文で入力（AIでタスク分解に使用）"
                             />
                           </div>
+
+                          {/* メモ */}
+                          <div>
+                            <label htmlFor="memo" className="block text-base font-medium text-gray-700 mb-2 sm:text-sm sm:mb-1">
+                              メモ
+                            </label>
+                            <textarea
+                              id="memo"
+                              value={formData.memo}
+                              onChange={(e) => handleInputChange('memo', e.target.value)}
+                              rows={3}
+                              className="input-base w-full px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm"
+                                                                placeholder="カテゴリに関するメモを入力"
+                            />
+                          </div>
                         </div>
 
                         {/* タスク */}
@@ -256,45 +275,22 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                                   placeholderText="日時（任意）"
                                   isClearable
                                 />
-                                <div className="relative">
-                                  <select
-                                    value={subtask.estimatedTime || ''}
-                                    onChange={(e) => {
-                                      const value = e.target.value
-                                      if (value === 'custom') {
-                                        // カスタムが選択された場合、入力フィールドを表示
-                                        handleSubtaskChange(index, 'estimatedTime', '')
-                                      } else {
-                                        handleSubtaskChange(index, 'estimatedTime', value)
-                                      }
-                                    }}
-                                    className="input-base w-full px-4 py-3 text-base appearance-none sm:px-2 sm:py-1 sm:text-sm"
-                                  >
-                                    <option value="">所要時間（任意）</option>
-                                    <option value="15分">15分</option>
-                                    <option value="30分">30分</option>
-                                    <option value="1時間">1時間</option>
-                                    <option value="2時間">2時間</option>
-                                    <option value="custom">カスタム</option>
-                                  </select>
-                                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none sm:pr-2">
-                                    <svg className="w-5 h-5 text-gray-400 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                  </div>
-                                </div>
                               </div>
                               
-                              {/* カスタム時間入力フィールド */}
-                              {(subtask.estimatedTime === '' || subtask.estimatedTime === 'custom') && (
-                                <input
-                                  type="text"
-                                  value={subtask.estimatedTime === 'custom' ? '' : subtask.estimatedTime}
-                                  onChange={(e) => handleSubtaskChange(index, 'estimatedTime', e.target.value)}
-                                  className="input-base w-full px-4 py-3 text-base sm:px-2 sm:py-1 sm:text-sm"
-                                  placeholder="カスタム時間を入力（例：45分、1.5時間、90分）"
+                              {/* サブタスクメモ */}
+                              <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1 sm:text-xs">
+                                  メモ
+                                </label>
+                                <textarea
+                                  value={subtask.memo || ''}
+                                  onChange={(e) => handleSubtaskChange(index, 'memo', e.target.value)}
+                                  rows={2}
+                                  className="input-base w-full px-3 py-2 text-sm sm:px-2 sm:py-1 sm:text-xs"
+                                  placeholder="タスクに関するメモを入力"
                                 />
-                              )}
+                              </div>
+                              
                             </div>
                           ))}
                         </div>

@@ -143,36 +143,39 @@ export default function TaskListView() {
       isSubtask: boolean
       parentTask?: string
       parentTaskId?: string
+      memo?: string
     }> = []
 
-    tasks.forEach(task => {
-      // メインタスクを追加（日時がある場合のみ）
-      if (task.subtasks.length === 0) {
-        // サブタスクがない場合は、タスク自体をアイテムとして追加
-        items.push({
-          id: task.id,
-          title: task.title,
-          datetime: task.datetime,
-          category: task.category,
-          completed: false, // メインタスクは完了状態を持たない
-          isSubtask: false
-        })
-      } else {
-        // サブタスクを追加
-        task.subtasks.forEach(subtask => {
+          tasks.forEach(task => {
+        // メインタスクを追加（日時がある場合のみ）
+        if (task.subtasks.length === 0) {
+          // サブタスクがない場合は、タスク自体をアイテムとして追加
           items.push({
-            id: subtask.id,
-            title: subtask.title,
-            datetime: subtask.datetime,
-            category: subtask.category || task.category,
-            completed: subtask.completed,
-            isSubtask: true,
-            parentTask: task.title,
-            parentTaskId: task.id
+            id: task.id,
+            title: task.title,
+            datetime: task.datetime,
+            category: task.category,
+            completed: false, // メインタスクは完了状態を持たない
+            isSubtask: false,
+            memo: task.memo
           })
-        })
-      }
-    })
+        } else {
+          // サブタスクを追加
+          task.subtasks.forEach(subtask => {
+            items.push({
+              id: subtask.id,
+              title: subtask.title,
+              datetime: subtask.datetime,
+              category: subtask.category || task.category,
+              completed: subtask.completed,
+              isSubtask: true,
+              parentTask: task.title,
+              parentTaskId: task.id,
+              memo: subtask.memo
+            })
+          })
+        }
+      })
 
     // 日時でソート（日時がないものは最後）
     return items.sort((a, b) => {
@@ -367,6 +370,15 @@ export default function TaskListView() {
                             {item.category}
                           </span>
                         </div>
+                        
+                        {/* メモ表示 */}
+                        {item.memo && (
+                          <div className="mt-1">
+                            <p className="text-xs text-gray-600 line-clamp-2">
+                              📝 {item.memo}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       {/* アクションボタン */}
@@ -651,6 +663,15 @@ export default function TaskListView() {
                               </span>
                             )}
                           </div>
+                          
+                          {/* メモ表示 */}
+                          {subtask.memo && (
+                            <div className="mt-1">
+                              <p className="text-xs text-gray-600 line-clamp-2">
+                                📝 {subtask.memo}
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         {/* タスクアクションボタン */}
