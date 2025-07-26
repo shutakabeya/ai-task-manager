@@ -356,19 +356,7 @@ export default function TaskListView() {
                         </div>
                         
                         <div className="flex items-center space-x-3 mt-1">
-                          {item.datetime && (
-                            <span className={`text-xs flex items-center ${
-                              section === 'Overdue' && !item.completed ? 'text-red-600' : 'text-gray-500'
-                            }`}>
-                              <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              {formatDateTime(item.datetime)}
-                            </span>
-                          )}
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
-                            {item.category}
-                          </span>
+                          <span className="text-xs text-gray-500">{item.category}</span>
                         </div>
                         
                         {/* メモ表示 */}
@@ -475,29 +463,11 @@ export default function TaskListView() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="flex-shrink-0">
-                    <div className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${getCategoryColor(task.category)}`}>
-                      {task.category}
-                    </div>
+                    <span className="text-xs text-gray-500">{task.category}</span>
                   </div>
                   <div className="flex flex-col">
                     <h3 className="text-base sm:text-lg font-medium text-text truncate">{task.title}</h3>
                     <div className="flex items-center space-x-3 mt-1">
-                      {task.datetime && (
-                        <span className="text-xs text-gray-500 flex items-center">
-                          <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {formatDateTime(task.datetime)}
-                        </span>
-                      )}
-                      {task.estimatedTime && (
-                        <span className="text-xs text-gray-500 flex items-center">
-                          <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {task.estimatedTime}
-                        </span>
-                      )}
                     </div>
                   </div>
                 </div>
