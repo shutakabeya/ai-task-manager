@@ -183,10 +183,18 @@ export default function TaskListView() {
     })
   }
 
+  // 期限切れかどうかをチェック
+  const isOverdue = (datetime: string): boolean => {
+    const now = new Date()
+    const taskDate = new Date(datetime)
+    return taskDate < now
+  }
+
   // 日付別にグループ化
   const getGroupedByDate = () => {
     const items = getSortedTaskItems()
     const groups: { [key: string]: typeof items } = {
+      'Overdue': [], // 期限切れセクションを追加
       'Today': [],
       'Tomorrow': [],
       'This Week': [],
@@ -196,8 +204,13 @@ export default function TaskListView() {
 
     items.forEach(item => {
       if (item.datetime) {
-        const section = getDateSection(new Date(item.datetime))
-        groups[section].push(item)
+        // 期限切れの場合はOverdueセクションに追加
+        if (isOverdue(item.datetime)) {
+          groups['Overdue'].push(item)
+        } else {
+          const section = getDateSection(new Date(item.datetime))
+          groups[section].push(item)
+        }
       } else {
         groups['No Date'].push(item)
       }
@@ -233,7 +246,7 @@ export default function TaskListView() {
   // 日付順ビュー
   const DateView = () => {
     const groups = getGroupedByDate()
-    const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
+    const sectionOrder = ['Overdue', 'Today', 'Tomorrow', 'This Week', 'Future', 'No Date']
 
     return (
       <div className="space-y-6 animate-fadeIn">
@@ -243,7 +256,10 @@ export default function TaskListView() {
 
           return (
             <div key={section} className="space-y-2 animate-slideIn">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <h3 className={`text-sm font-semibold uppercase tracking-wide ${
+                section === 'Overdue' ? 'text-red-600' : 'text-gray-500'
+              }`}>
+                {section === 'Overdue' && '⚠️ 期限切れ'}
                 {section === 'Today' && '今日'}
                 {section === 'Tomorrow' && '明日'}
                 {section === 'This Week' && '今週'}
@@ -257,8 +273,12 @@ export default function TaskListView() {
                     className="transition-all duration-200"
                   >
                     <div
-                      className={`task-item flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-soft transition-all duration-150 ${
+                      className={`task-item flex items-center space-x-3 p-3 rounded-lg border transition-all duration-150 ${
                         item.completed ? 'opacity-75' : ''
+                      } ${
+                        section === 'Overdue' && !item.completed
+                          ? 'bg-red-50 border-red-200 hover:shadow-soft hover:border-red-300'
+                          : 'bg-white border-gray-200 hover:shadow-soft'
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                       data-clickable="true"
@@ -325,7 +345,8 @@ export default function TaskListView() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2">
                           <p className={`text-sm font-medium ${
-                            item.completed ? 'text-gray-500 line-through' : 'text-text'
+                            item.completed ? 'text-gray-500 line-through' : 
+                            section === 'Overdue' ? 'text-red-700' : 'text-text'
                           }`}>
                             {item.title}
                           </p>
@@ -333,7 +354,9 @@ export default function TaskListView() {
                         
                         <div className="flex items-center space-x-3 mt-1">
                           {item.datetime && (
-                            <span className="text-xs text-gray-500 flex items-center">
+                            <span className={`text-xs flex items-center ${
+                              section === 'Overdue' && !item.completed ? 'text-red-600' : 'text-gray-500'
+                            }`}>
                               <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
